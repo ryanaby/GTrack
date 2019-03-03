@@ -1,0 +1,20 @@
+{
+    "name": "Global Resi",
+    "description": "heuheuheu",
+    "type": "library",
+    "license": "heu",
+    "authors": [
+        {
+            "name": "GlobalTesla",
+            "email": "hi@globaltesla.com"
+        }
+    ],
+    "require": {
+        "php-curl-class/php-curl-class": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "GTrack\\": "src/"
+        }
+    }
+}
