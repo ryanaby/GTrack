@@ -1,0 +1,7 @@
+# Make .git files and directory web inaccessible
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^(.*/)?\.git+ - [R=404,L]
+</IfModule>
+# Second line of defense (if no mod_rewrite)
+RedirectMatch 404 ^(.*/)?\.git+
