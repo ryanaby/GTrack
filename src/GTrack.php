@@ -12,6 +12,17 @@ use \GTrack\GlobalFunction;
 class GTrack
 {
 
+    public static $proxy;
+
+    function __construct($proxy = null)
+    {
+        $this->_post      = '';
+        $this->_get       = '';
+        $this->_headers   = [];
+        $this->_basicAuth = '';
+        self::$proxy      = $proxy;
+    }
+
     /**
      * JNE
      * 

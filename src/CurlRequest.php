@@ -24,7 +24,6 @@ class CurlRequest
         $this->_basicAuth   = '';
     }
 
-
     public function request()
     {
         $curl = new Curl();
@@ -39,9 +38,11 @@ class CurlRequest
         $curl->setOpt(CURLOPT_RETURNTRANSFER, true);
         $curl->setOpt(CURLOPT_SSL_VERIFYHOST, 2);
 
-        $curl->setProxy('192.168.88.8:8888');
-
         $this->curl = $curl;
+
+        if (!is_null(GTrack::$proxy)) {
+            $this->curl->setProxy(GTrack::$proxy);
+        }
 
         return $this;
     }
