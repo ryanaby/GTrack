@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "php-curl-class/php-curl-class": "@dev"
+        "php-curl-class/php-curl-class": "@dev",
+        "phpunit/phpunit": "^8.0"
     },
     "autoload": {
         "psr-4": {

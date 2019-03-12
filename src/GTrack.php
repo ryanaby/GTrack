@@ -32,7 +32,7 @@ class GTrack
      */
     public function jne($resi)
     {
-        return (new CurlRequest)
+        $request = (new CurlRequest)
             ->request()
             ->setHeaders([
                 'Host'       => Constants::JNE_HOST,
@@ -43,6 +43,8 @@ class GTrack
                 'api_key'    => '504fbae0d815bf3e73a7416be328fcf2',
             ])
             ->getResponse();
+
+        return Response\JneResponse::result($request);
     }
 
     /**
@@ -61,7 +63,7 @@ class GTrack
             ],
         ];
 
-        $curl = (new CurlRequest)
+        $request = (new CurlRequest)
             ->request()
             ->setHeaders([
                 'X-Requested-With' => 'XMLHttpRequest',
@@ -73,9 +75,10 @@ class GTrack
                 'data'             => json_encode($query),
                 'format'           => 'json',
                 'v'                => '1.0',
-            ]);
+            ])
+            ->getResponse();
 
-        return GlobalFunction::formatJntResponse($curl->response);
+        return Response\JntResponse::result($request);
     }
 
     /**
@@ -129,7 +132,7 @@ class GTrack
             }
         }
 
-        return $result;
+        return Response\TikiResponse::result($result);
     }
 
     /**
@@ -141,7 +144,7 @@ class GTrack
      */
     public function pos($resi)
     {
-        return (new CurlRequest)
+        $request = (new CurlRequest)
             ->request()
             ->setHeaders([
                 'User-Agent' => Constants::DALVIK_UA,
@@ -157,6 +160,8 @@ class GTrack
                 'vr'   => '7.0.9',
             ])
             ->getResponse();
+
+        return Response\PosResponse::result($request);
     }
 
     /**
@@ -168,7 +173,7 @@ class GTrack
      */
     public function wahana($resi)
     {
-        return (new CurlRequest)
+        $request = (new CurlRequest)
             ->request()
             ->setHeaders([
                 'User-Agent'   => 'Apache-HttpClient/UNAVAILABLE (java 1.4)',
@@ -179,6 +184,8 @@ class GTrack
                 'ttk'          => $resi,
             ])
             ->getResponse();
+
+        return Response\WahanaResponse::result($request);
     }
 
     /**
@@ -190,14 +197,16 @@ class GTrack
      */
     public function siCepat($resi)
     {
-        return (new CurlRequest)
+        $request = (new CurlRequest)
             ->request()
             ->setHeaders([
                 'Host'    => Constants::SICEPAT_HOST,
                 'api-key' => '96625fdc2bfe59fa05dcf7c9c71755dd',
             ])
             ->get(Constants::SICEPAT, ['waybill' => $resi])
-            ->getResponse();
+            ->getResponse()->sicepat;
+
+        return Response\SiCepatResponse::result($request);
     }
 
     /**
@@ -209,11 +218,13 @@ class GTrack
      */
     public function ninjaXpress($resi)
     {
-        return (new CurlRequest)
+        $request = (new CurlRequest)
             ->request()
             ->setHeaders(['User-Agent' => 'okhttp/3.4.1'])
             ->get(Constants::NINJAXPRESS, ['id' => $resi])
             ->getResponse();
+
+        return Response\NinjaXpressResponse::result($request);
     }
 
     /**
@@ -230,19 +241,23 @@ class GTrack
             ->request()
             ->setHeaders($query)
             ->get(Constants::JETEXPRESS, ['awbNumbers' => $resi])
-            ->getResponse()[0];
-
-        $history = (new CurlRequest)
-            ->request()
-            ->setHeaders($query)
-            ->get(sprintf(Constants::JET_HISTORY, $resi, $data->connotes[0]->connoteCode))
             ->getResponse();
 
+        $history = [];
+
+        if (!empty($data)) {
+            $history = (new CurlRequest)
+                ->request()
+                ->setHeaders($query)
+                ->get(sprintf(Constants::JET_HISTORY, $resi, $data[0]->connotes[0]->connoteCode))
+                ->getResponse();
+        }
+
         $result          = new \stdClass();
-        $result->data    = $data;
+        $result->data    = $data[0];
         $result->history = $history;
 
-        return $result;
+        return Response\JetExpressResponse::result($result);
     }
 
 }

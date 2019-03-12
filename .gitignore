@@ -2,3 +2,4 @@ test.php
 vendor/
 composer.lock
 cookie.txt
+.phpunit.result.cache
