@@ -13,6 +13,7 @@ class CurlRequest
     private $_post;
     private $_get;
     private $_headers;
+    private $_cookies;
     public  $response;
     private $_basicAuth;
 
@@ -66,6 +67,13 @@ class CurlRequest
     public function setHeaders($arr)
     {
         $this->_headers = $this->curl->setHeaders($arr);
+
+        return $this;
+    }
+
+    public function setCookies($arr)
+    {
+        $this->_cookies = $this->curl->setCookies($arr);
 
         return $this;
     }
