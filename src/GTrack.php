@@ -7,7 +7,16 @@ use \GTrack\Constants;
 use \GTrack\GlobalFunction;
 
 /**
- * GTrack
+ * GTrack - Resi Tracker API
+ *
+ * CATATAN FENTING:
+ * - GTrack ini tidak berafiliasi, diizinkan, dikelola ataupun di sponsori
+ *   oleh pihak ekspedisi ataupun anak perusahaannya. GTrack murni dibikin
+ *   sendiri dan statusnya tidak resmi. Resiko ditanggung pengguna.
+ * - GTrack dibuat tidak untuk kejahatan, spamming, ataupun kegiatan yang merugikan orang lain.
+ * - Pada intinya GTrack dibuat untuk mempermudah kita untuk melakukan melacak resi ya man teman.
+ *
+ * @author walangkaji (https://github.com/walangkaji)
  */
 class GTrack
 {

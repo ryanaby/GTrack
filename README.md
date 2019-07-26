@@ -3,6 +3,9 @@
 GTrack merupakan sebuah repository yang digunakan untuk Tracking / Cek Resi pada beberapa ekspedisi pengiriman baik di kelas Indonesia maupun Internasional.
 
 ----------
+# Support me
+- ![Paypal](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/paypal.png) Paypal: [Se-Ikhlasnya Saja](https://www.paypal.me/walangkaji)
+----------
 ### Cara Install
 
 ### 1. Via Clone Tepo
@@ -38,6 +41,11 @@ $cek    = $GTrack->jne('011440046444019');
 var_dump($cek);
 ```
 
+Jika pengen menggunakan proxy:
+```php
+$proxy  = '192.168.1.1:1111';
+$GTrack = new GTrack($proxy);
+```
 ### Ready digunakan
 
 - **JNE**
@@ -63,3 +71,6 @@ GTrack::jetExpress('xxxxxxx')
 ```
 
 Cukup sekian dan Matursuwun.
+
+Jangan lupa kalo mau support seikhlasnya bisa lewat sini:
+- ![Paypal](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/paypal.png) Paypal: [Se-Ikhlasnya Saja](https://www.paypal.me/walangkaji)
