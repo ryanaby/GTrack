@@ -61,4 +61,21 @@ class GlobalFunction
         return !is_null($value) ? rtrim($value) : null;
     }
 
+    /**
+     * Untuk cari string diantara string
+     * @param string $content contentnya
+     * @param string $start   awalan
+     * @param string $end     akhiran
+     */
+    public function GetBetween($content, $start, $end)
+    {
+        $r = explode($start, $content);
+        if (isset($r[1])){
+            $r = explode($end, $r[1]);
+            return $r[0];
+        }
+        return '';
+    }
+
+
 }

@@ -144,24 +144,24 @@ class GTrack
      */
     public function pos($resi)
     {
+        $request  = (new CurlRequest)
+            ->request()
+            ->get('https://www.posindonesia.co.id/id/tracking?resi=' . $resi)
+            ->getResponse();
+
+        $token   = GlobalFunction::GetBetween($request, 'csrf-token" content="', '">');
+
         $request = (new CurlRequest)
             ->request()
-            ->setHeaders([
-                'User-Agent' => Constants::DALVIK_UA,
-                'Host'       => Constants::POS_HOST,
-            ])
-            ->post(Constants::POS, [
-                'ky'   => '',
-                'ai'   => GlobalFunction::randomStr(16, false, true),
-                'eks'  => 'POS',
-                'resi' => $resi,
-                'nq'   => '',
-                'nw'   => date('Y/m/d H:i:s', strtotime('now')),
-                'vr'   => '7.0.9',
+            ->post('https://www.posindonesia.co.id/id/api-get-resi', [
+                'resi'   => $resi,
+                '_token' => $token,
             ])
             ->getResponse();
 
-        return Response\PosResponse::result($request);
+        @unlink('cookie.txt');
+
+        return Response\PosResponse::result(json_decode($request));
     }
 
     /**

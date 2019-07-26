@@ -189,7 +189,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testNinjaXpressResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->ninjaXpress('BLAPK191774574396');
+        $get      = $GTrack->ninjaXpress('BLAPK191972220349');
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {

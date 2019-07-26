@@ -10,6 +10,7 @@ class PosResponse
 
     public static $messageStatus;
     public static $tanggal_kirim;
+    public static $yang_menerima;
 
     /**
      * Format result yang diproses
@@ -33,35 +34,36 @@ class PosResponse
 
         $info                   = self::getInfo($response);
         $history                = self::getHistory($response);
+
         $data['error']          = $isError;
         $data['message']        = self::$messageStatus;
         $data['info']           = [
             'id'                => null,
             'no_awb'            => $info->no_awb,
             'service'           => $info->service,
-            'status'            => strtoupper($info->status_delivery),
-            'tanggal_kirim'     => self::$tanggal_kirim,
-            'tanggal_terima'    => GlobalFunction::setDate($info->diterima_tanggal),
-            'asal_pengiriman'   => $info->alamat_pengirim,
-            'tujuan_pengiriman' => $info->alamat_penerima,
+            'status'            => strtoupper($info->status_pengiriman),
+            'tanggal_kirim'     => $info->tanggal_kirim,
+            'tanggal_terima'    => $info->tanggal_terima,
+            'asal_pengiriman'   => $info->asal_pengiriman,
+            'tujuan_pengiriman' => $info->tujuan_pengiriman,
             'harga'             => null,
-            'berat'             => null, // gram
-            'catatan'           => null,
+            'berat'             => $info->berat, // gram
+            'catatan'           => $info->catatan,
         ];
         $data['pengirim']       = [
             'nama'              => strtoupper($info->nama_pengirim),
-            'phone'             => null,
-            'kota'              => null,
-            'alamat1'           => $info->alamat_pengirim,
+            'phone'             => $info->phone_pengirim,
+            'kota'              => $info->kota_pengirim,
+            'alamat1'           => $info->asal_pengiriman,
             'alamat2'           => null,
             'alamat3'           => null,
         ];
         $data['penerima']       = [
             'nama'              => strtoupper($info->nama_penerima),
-            'nama_penerima'     => strtoupper($info->diterima_oleh),
-            'phone'             => null,
-            'kota'              => null,
-            'alamat1'           => $info->alamat_penerima,
+            'nama_penerima'     => strtoupper(self::$yang_menerima),
+            'phone'             => $info->phone_penerima,
+            'kota'              => $info->kota_penerima,
+            'alamat1'           => $info->tujuan_pengiriman,
             'alamat2'           => null,
             'alamat3'           => null,
         ];
@@ -77,57 +79,50 @@ class PosResponse
      */
     private static function isError($response)
     {
-        if (!empty($response->error)) {
-            self::$messageStatus = $response->error;
-            return true;
-        }else{
-            self::$messageStatus = 'success';
-            return false;
+        if (isset($response->api_callback->response)) {
+            if (is_null($response->api_callback->response)) {
+                self::$messageStatus = 'Data tidak ditemukan.';
+                return true;
+            }else{
+                self::$messageStatus = 'success';
+                return false;
+            }
         }
+        self::$messageStatus = 'Server error, Please try again';
+        return true;
     }
 
     /**
-     * Get status dan message
+     * Get info
      * 
      * @param  object $response
      */
     private static function getInfo($response)
     {
-        $result = [];
-        $info = $response->res->det;
-        foreach ($info as $key) {
-            switch ($key->k) {
-                case 'No Resi':
-                    $result['no_awb'] = $key->v;
-                    break;
-                case 'Status':
-                    $result['status_delivery'] = $key->v;
-                    break;
-                case 'Layanan':
-                    $result['service'] = $key->v;
-                    break;
-                case 'Pengirim':
-                    $result['nama_pengirim'] = $key->v;
-                    break;
-                case 'Alamat Pengirim':
-                    $result['alamat_pengirim'] = $key->v;
-                    break;
-                case 'Penerima':
-                    $result['nama_penerima'] = $key->v;
-                    break;
-                case 'Alamat Penerima':
-                    $result['alamat_penerima'] = $key->v;
-                    break;
-                case 'Diterima Tgl':
-                    $result['diterima_tanggal'] = $key->v;
-                    break;
-                case 'Diterima Oleh':
-                    $result['diterima_oleh'] = $key->v;
-                    break;
-            }
+        $data = end($response->api_callback->response->data);
+        $ket  = explode('~~', $data->description);
+        $data2 = $response->api_callback->response->data[0];
+
+        $info['no_awb']            = strval($data->barcode);
+        $info['service']           = str_replace('Produk : ', '', $ket[10]);
+        $info['tanggal_kirim']     = GlobalFunction::setDate($data->eventDate);
+        $info['asal_pengiriman']   = ltrim($ket[3]);
+        $info['tujuan_pengiriman'] = ltrim($ket[7]);
+        $info['berat']             = ltrim(str_replace(['Berat :', 'gr'], '', $ket[11]));
+        $info['catatan']           = str_replace('Isi Kiriman : ', '', $ket[13]);
+        $info['nama_pengirim']     = str_replace('Pengirim : ', '', $ket[2]);
+        $info['phone_pengirim']    = ltrim($ket[4]);
+        $info['kota_pengirim']     = ltrim($ket[5]);
+        $info['nama_penerima']     = ltrim(str_replace('Penerima : ', '', $ket[6]));
+        $info['phone_penerima']    = ltrim($ket[8]);
+        $info['kota_penerima']     = ltrim($ket[9]);
+
+        $info['status_pengiriman'] = $data2->eventName;
+        if ($data2->eventName == 'SELESAI ANTAR') {
+            $info['tanggal_terima'] = GlobalFunction::setDate($data2->eventDate);
         }
 
-        return (object)$result;
+        return (object)$info;
     }
 
     /**
@@ -139,19 +134,23 @@ class PosResponse
     {
         $history = [];
 
-        foreach ($response->res->trc as $k => $v) {
-            $date = GlobalFunction::setDate($v->tgl . ' ' . $v->bln . ' 2019 ' . $v->jam);
+        foreach ($response->api_callback->response->data as $k => $v) {
+            $desc = explode('~~', $v->description);
+            $history[$k]['tanggal']  = GlobalFunction::setDate($v->eventDate);
+            $history[$k]['posisi']   = ltrim($desc[1]);
+            $history[$k]['message']  = $desc[0];
 
-            if ($k == 0) {
-                self::$tanggal_kirim = $date;
+            if ($v->eventName == 'SELESAI ANTAR') {
+
+                foreach ($desc as $key => $val) {
+                    if (strpos($val, 'Diterima oleh') !== false) {
+                        self::$yang_menerima = ltrim(str_replace('Diterima oleh', '', $val));
+                    }
+                }
             }
-
-            $history[$k]['tanggal']  = $date;
-            $history[$k]['posisi']   = $v->stat;
-            $history[$k]['message']  = $v->ket;
         }
 
-        return $history;
+        return array_reverse($history);
     }
 
 }
