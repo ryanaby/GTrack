@@ -10,8 +10,8 @@ class Constants
     const TIKI_HOST     = 'mobile.mytiki.net';
     const TIKI_INFO     = 'http://mobile.mytiki.net/connote/info';
     const TIKI_HISTORY  = 'http://mobile.mytiki.net/connote/mpds/history';
-    const POS_HOST      = '139.162.38.138';
-    const POS           = 'http://139.162.38.138/r/index.v4.php';
+    const POS_GET       = 'https://www.posindonesia.co.id/id/tracking?resi=%s';
+    const POS           = 'https://www.posindonesia.co.id/id/api-get-resi';
     const WAHANA_HOST   = 'intranet.wahana.com';
     const WAHANA        = 'http://intranet.wahana.com/ci-oauth2/Api/trackingNew';
     const SICEPAT_HOST  = 'api.sicepat.com';

@@ -155,14 +155,14 @@ class GTrack
     {
         $request  = (new CurlRequest)
             ->request()
-            ->get('https://www.posindonesia.co.id/id/tracking?resi=' . $resi)
+            ->get(sprintf(Constants::POS_GET, $resi))
             ->getResponse();
 
         $token   = GlobalFunction::GetBetween($request, 'csrf-token" content="', '">');
 
         $request = (new CurlRequest)
             ->request()
-            ->post('https://www.posindonesia.co.id/id/api-get-resi', [
+            ->post(Constants::POS, [
                 'resi'   => $resi,
                 '_token' => $token,
             ])
