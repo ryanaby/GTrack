@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,7 +8,6 @@ use \GTrack\GlobalFunction;
  */
 class WahanaResponse
 {
-
     public static $messageStatus;
     public static $tanggal_terima;
     public static $nama_penerima;
@@ -15,9 +15,9 @@ class WahanaResponse
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -73,7 +73,7 @@ class WahanaResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -81,7 +81,7 @@ class WahanaResponse
         if ($response->status == 'error') {
             self::$messageStatus = $response->error;
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -91,14 +91,14 @@ class WahanaResponse
     {
         if ($response->StatusTerakhir == 3) {
             return 'DELIVERED';
-        }else{
+        } else {
             return 'ON PROCESS';
         }
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -106,7 +106,6 @@ class WahanaResponse
         $history = [];
 
         foreach ($response->data as $k => $v) {
-
             $history[$k]['tanggal'] = GlobalFunction::setDate($v->Tanggal);
 
             switch ($v->StatusInternal) {
@@ -151,10 +150,8 @@ class WahanaResponse
             }
 
             $history[$k]['message'] = $v->TrackStatusNama;
-
         }
 
         return $history;
     }
-
 }

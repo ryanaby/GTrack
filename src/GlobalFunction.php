@@ -10,12 +10,12 @@ class GlobalFunction
 
     /**
      * Generate random string
-     * 
+     *
      * @param  int     $length      Panjang karakter
      * @param  boolean $strOnly     Yang ditampilkan hanya string
      * @param  boolean $smallStr    Yang ditampilkan hanya huruf kecil & digit
      */
-    public static function randomStr ($length = 10, $strOnly = false, $smallStr = false)
+    public static function randomStr($length = 10, $strOnly = false, $smallStr = false)
     {
         $char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -39,7 +39,7 @@ class GlobalFunction
 
     /**
      * Untuk format waktu
-     * 
+     *
      * @param string $date tanggalnya
      */
     public static function setDate($date, $timestamp = false)
@@ -53,7 +53,7 @@ class GlobalFunction
 
     /**
      * Set data jika null
-     * 
+     *
      * @param string $value String yang akan di proses
      */
     public static function setIfNull($value)
@@ -70,12 +70,10 @@ class GlobalFunction
     public function GetBetween($content, $start, $end)
     {
         $r = explode($start, $content);
-        if (isset($r[1])){
+        if (isset($r[1])) {
             $r = explode($end, $r[1]);
             return $r[0];
         }
         return '';
     }
-
-
 }

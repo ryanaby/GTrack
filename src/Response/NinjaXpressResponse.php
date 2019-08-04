@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,16 +8,15 @@ use \GTrack\GlobalFunction;
  */
 class NinjaXpressResponse
 {
-
     public static $messageStatus;
     public static $tanggal_kirim;
     public static $tanggal_terima;
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -73,7 +73,7 @@ class NinjaXpressResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -81,7 +81,7 @@ class NinjaXpressResponse
         if (empty($response)) {
             self::$messageStatus = 'No AWB tidak ditemukan.';
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -89,7 +89,7 @@ class NinjaXpressResponse
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -101,7 +101,7 @@ class NinjaXpressResponse
 
             if (strpos($v->description, ' - ') !== false) {
                 $posisi = strtoupper(preg_replace('/(.*) - (.*)/', '$2', $v->description));
-            }else{
+            } else {
                 $posisi = null;
             }
 
@@ -120,10 +120,8 @@ class NinjaXpressResponse
             $history[$k]['tanggal'] = GlobalFunction::setDate($time, true);
             $history[$k]['posisi']  = $posisi;
             $history[$k]['message'] = $v->description;
-
         }
 
         return $history;
     }
-
 }

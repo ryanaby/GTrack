@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,16 +8,15 @@ use \GTrack\GlobalFunction;
  */
 class PosResponse
 {
-
     public static $messageStatus;
     public static $tanggal_kirim;
     public static $yang_menerima;
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -74,7 +74,7 @@ class PosResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -83,7 +83,7 @@ class PosResponse
             if (is_null($response->api_callback->response)) {
                 self::$messageStatus = 'Data tidak ditemukan.';
                 return true;
-            }else{
+            } else {
                 self::$messageStatus = 'success';
                 return false;
             }
@@ -94,7 +94,7 @@ class PosResponse
 
     /**
      * Get info
-     * 
+     *
      * @param  object $response
      */
     private static function getInfo($response)
@@ -127,7 +127,7 @@ class PosResponse
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -141,7 +141,6 @@ class PosResponse
             $history[$k]['message']  = $desc[0];
 
             if ($v->eventName == 'SELESAI ANTAR') {
-
                 foreach ($desc as $key => $val) {
                     if (strpos($val, 'Diterima oleh') !== false) {
                         self::$yang_menerima = ltrim(str_replace('Diterima oleh', '', $val));
@@ -152,5 +151,4 @@ class PosResponse
 
         return array_reverse($history);
     }
-
 }

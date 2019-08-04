@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,15 +8,14 @@ use \GTrack\GlobalFunction;
  */
 class JneResponse
 {
-
     public static $lastPossition;
     public static $messageStatus;
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -72,7 +72,7 @@ class JneResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -80,7 +80,7 @@ class JneResponse
         if (isset($response->status) && !$response->status) {
             self::$messageStatus = $response->error;
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -88,7 +88,7 @@ class JneResponse
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -108,13 +108,10 @@ class JneResponse
                 $explode                = explode(' | ', $pecah[1]);
                 $history[$k]['posisi']  = rtrim(end($explode));
                 $history[$k]['message'] = 'DELIVERED';
-            }
-            elseif (count($pecah) > 1) {
+            } elseif (count($pecah) > 1) {
                 $history[$k]['posisi']  = str_replace(' , ', ', ', $pecah[1]);
                 $history[$k]['message'] = rtrim(str_replace(' AT', '', $pecah[0]));
-            }
-
-            else{
+            } else {
                 $history[$k]['posisi']  = self::getLastPossition();
                 $history[$k]['message'] = $pecah[0];
             }
@@ -125,7 +122,7 @@ class JneResponse
 
     /**
      * Set posisi terakhir
-     * 
+     *
      * @param string $possition Posisi terakhir
      */
     private static function setLastPossition($possition)
@@ -140,6 +137,4 @@ class JneResponse
     {
         return self::$lastPossition;
     }
-
-
 }

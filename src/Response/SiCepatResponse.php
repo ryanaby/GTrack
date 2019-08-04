@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,15 +8,14 @@ use \GTrack\GlobalFunction;
  */
 class SiCepatResponse
 {
-
     public static $messageStatus;
     public static $nama_penerima;
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -71,7 +71,7 @@ class SiCepatResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -79,7 +79,7 @@ class SiCepatResponse
         if ($response->status->code == 400) {
             self::$messageStatus = $response->status->description;
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -90,14 +90,14 @@ class SiCepatResponse
         if ($response->result->last_status->status == 'DELIVERED') {
             self::$nama_penerima = preg_replace('/(.*)\[(.*) - (.*)\](.*)/', '$2', $response->result->last_status->receiver_name);
             return 'DELIVERED';
-        }else{
+        } else {
             return 'ON PROCESS';
         }
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -105,11 +105,10 @@ class SiCepatResponse
         $history = [];
 
         foreach ($response->result->track_history as $k => $v) {
-
             if ($v->status == 'DELIVERED') {
                 $history[$k]['posisi']     = 'Diterima';
                 $history[$k]['message']    = $v->receiver_name;
-            }else{
+            } else {
                 $history[$k]['tanggal']    = GlobalFunction::setDate($v->date_time);
                 $history[$k]['posisi']     = preg_replace('/(.*)\[(.*)\](.*)/', '$2', $v->city);
 
@@ -119,10 +118,8 @@ class SiCepatResponse
 
                 $history[$k]['message']    = $v->city;
             }
-
         }
 
         return $history;
     }
-
 }

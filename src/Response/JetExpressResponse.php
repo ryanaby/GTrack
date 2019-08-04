@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -16,9 +17,9 @@ class JetExpressResponse
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -75,7 +76,7 @@ class JetExpressResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -83,7 +84,7 @@ class JetExpressResponse
         if (empty($response->data)) {
             self::$messageStatus = 'No AWB tidak ditemukan.';
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -91,7 +92,7 @@ class JetExpressResponse
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -130,5 +131,4 @@ class JetExpressResponse
 
         return $history;
     }
-
 }

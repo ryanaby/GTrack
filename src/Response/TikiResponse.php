@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,7 +8,6 @@ use \GTrack\GlobalFunction;
  */
 class TikiResponse
 {
-
     public static $statusDelivery;
     public static $penerima;
     public static $tglTerima;
@@ -15,9 +15,9 @@ class TikiResponse
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -74,7 +74,7 @@ class TikiResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -82,7 +82,7 @@ class TikiResponse
         if (empty($response->info)) {
             self::$messageStatus = 'No AWB tidak ditemukan.';
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -90,7 +90,7 @@ class TikiResponse
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($response)
@@ -98,12 +98,11 @@ class TikiResponse
         $history = [];
 
         foreach (array_reverse($response->history) as $k => $v) {
-
             if ($v->status == 'POD 01') {
                 self::$statusDelivery   = 'DELIVERED';
                 self::$penerima         = preg_replace('/(.*) RECEIVED BY: (.*)/', '$2', $v->noted);
                 self::$tglTerima        = GlobalFunction::setDate($v->entry_date);
-            }else{
+            } else {
                 self::$statusDelivery   = 'ON PROCESS';
                 self::$penerima         = null;
                 self::$tglTerima        = null;
@@ -116,5 +115,4 @@ class TikiResponse
 
         return $history;
     }
-
 }

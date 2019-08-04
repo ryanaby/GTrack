@@ -8,16 +8,15 @@ use \Curl\Curl;
  */
 class CurlRequest
 {
- 
     private $curl;
     private $_post;
     private $_get;
     private $_headers;
     private $_cookies;
-    public  $response;
+    public $response;
     private $_basicAuth;
 
-    function __construct()
+    public function __construct()
     {
         $this->_post        = '';
         $this->_get         = '';
@@ -89,6 +88,4 @@ class CurlRequest
 
         return $this;
     }
-
-
 }

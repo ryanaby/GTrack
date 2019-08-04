@@ -20,10 +20,9 @@ use \GTrack\GlobalFunction;
  */
 class GTrack
 {
-
     public static $proxy;
 
-    function __construct($proxy = null)
+    public function __construct($proxy = null)
     {
         $this->_post      = '';
         $this->_get       = '';
@@ -34,9 +33,9 @@ class GTrack
 
     /**
      * JNE
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek
-     * 
+     *
      * @return object
      */
     public function jne($resi)
@@ -58,9 +57,9 @@ class GTrack
 
     /**
      * J&T
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function jnt($resi)
@@ -92,9 +91,9 @@ class GTrack
 
     /**
      * TIKI
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function tiki($resi)
@@ -124,8 +123,9 @@ class GTrack
 
             $i++;
 
-            if ($i > $try) return $info->msg;
-
+            if ($i > $try) {
+                return $info->msg;
+            }
         } while ($i <= $try && !$valid);
 
         $result->info = $info->response[0];
@@ -136,7 +136,7 @@ class GTrack
         if (!isset($history->errcode)) {
             if (!is_null($history->response)) {
                 $result->history = $history->response[0]->history;
-            }else{
+            } else {
                 $result->history = $history->response;
             }
         }
@@ -146,9 +146,9 @@ class GTrack
 
     /**
      * POS INDONESIA
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function pos($resi)
@@ -175,9 +175,9 @@ class GTrack
 
     /**
      * WAHANA
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function wahana($resi)
@@ -199,9 +199,9 @@ class GTrack
 
     /**
      * SICEPAT
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function siCepat($resi)
@@ -220,9 +220,9 @@ class GTrack
 
     /**
      * NINJAXPRESS
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function ninjaXpress($resi)
@@ -238,9 +238,9 @@ class GTrack
 
     /**
      * JET EXPRESS
-     * 
+     *
      * @param  string $resi Nomor resi yang mau di cek.
-     * 
+     *
      * @return object
      */
     public function jetExpress($resi)
@@ -268,5 +268,4 @@ class GTrack
 
         return Response\JetExpressResponse::result($result);
     }
-
 }

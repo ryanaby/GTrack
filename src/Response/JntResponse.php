@@ -1,5 +1,6 @@
 <?php
 namespace GTrack\Response;
+
 use \GTrack\GlobalFunction;
 
 /**
@@ -7,14 +8,13 @@ use \GTrack\GlobalFunction;
  */
 class JntResponse
 {
-
     public static $messageStatus;
 
     /**
      * Format result yang diproses
-     * 
+     *
      * @param  object $response response dari request
-     * 
+     *
      * @return object
      */
     public static function result($response)
@@ -74,7 +74,7 @@ class JntResponse
 
     /**
      * Get status dan message
-     * 
+     *
      * @param  object $response
      */
     private static function isError($response)
@@ -82,7 +82,7 @@ class JntResponse
         if (empty($response->details)) {
             self::$messageStatus = 'No AWB tidak ditemukan.';
             return true;
-        }else{
+        } else {
             self::$messageStatus = 'success';
             return false;
         }
@@ -90,7 +90,7 @@ class JntResponse
 
     /**
      * Get detail pengiriman
-     * 
+     *
      * @param  array $details array dari history jnt
      */
     private static function getDetail($details)
@@ -112,7 +112,6 @@ class JntResponse
                 $result['nama_penerima']     = strtoupper($key->signer);
                 $result['kota_penerima']     = strtoupper($key->city);
             }
-
         }
 
         return $result;
@@ -120,7 +119,7 @@ class JntResponse
 
     /**
      * Compile history dengan format yang sudah disesuaikan
-     * 
+     *
      * @param  object $response
      */
     private static function getHistory($details)
@@ -148,10 +147,8 @@ class JntResponse
                     $history[$k]['message'] = $v->scanstatus . ' kepada ' . strtoupper($v->signer);
                     break;
             }
-
         }
 
         return $history;
     }
-
 }
