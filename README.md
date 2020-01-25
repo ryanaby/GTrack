@@ -4,7 +4,7 @@ GTrack merupakan sebuah repository yang digunakan untuk Tracking / Cek Resi pada
 
 ----------
 # Support me
-- ![Paypal](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/paypal.png) Paypal: [Se-Ikhlasnya Saja](https://www.paypal.me/walangkaji)
+- ![Paypal](https://raw.githubusercontent.com/walangkaji/emboh/master/img/paypal.png) Paypal: [Se-Ikhlasnya Saja](https://www.paypal.me/walangkaji)
 ----------
 ### Cara Install
 
@@ -63,7 +63,7 @@ $GTrack = new GTrack($proxy);
 GTrack::jne('xxxxxxx')
 GTrack::jnt('xxxxxxx')
 GTrack::tiki('xxxxxxx')
-GTrack::pos('xxxxxxx')
+~~GTrack::pos('xxxxxxx')~~
 GTrack::wahana('xxxxxxx')
 GTrack::siCepat('xxxxxxx')
 GTrack::ninjaXpress('xxxxxxx')
@@ -73,4 +73,4 @@ GTrack::jetExpress('xxxxxxx')
 Cukup sekian dan Matursuwun.
 
 Jangan lupa kalo mau support seikhlasnya bisa lewat sini:
-- ![Paypal](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/paypal.png) Paypal: [Se-Ikhlasnya Saja](https://www.paypal.me/walangkaji)
+- ![Paypal](https://raw.githubusercontent.com/walangkaji/emboh/master/img/paypal.png) Paypal: [Se-Ikhlasnya Saja](https://www.paypal.me/walangkaji)
