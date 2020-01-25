@@ -48,10 +48,18 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         ]
     ];
 
+    public function getValidResi($name)
+    {
+        $json = file_get_contents('test_valid_resi.json');
+        $data = json_decode($json, true);
+
+        return $data[$name];
+    }
+
     public function testJneResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->jne('012030045457019');
+        $get      = $GTrack->jne($this->getValidResi('jne'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -74,7 +82,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testJntResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->jnt('JT6094602520');
+        $get      = $GTrack->jnt($this->getValidResi('jnt'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -97,7 +105,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testTikiResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->tiki('030125392642');
+        $get      = $GTrack->tiki($this->getValidResi('tiki'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -120,7 +128,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testPosResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->pos('16953453648');
+        $get      = $GTrack->pos($this->getValidResi('pos'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -143,7 +151,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testWahanaResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->wahana('APT65199');
+        $get      = $GTrack->wahana($this->getValidResi('wahana'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -166,7 +174,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testSiCepatResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->siCepat('000011779554');
+        $get      = $GTrack->siCepat($this->getValidResi('siCepat'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -189,7 +197,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testNinjaXpressResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->ninjaXpress('BLAPK191972220349');
+        $get      = $GTrack->ninjaXpress($this->getValidResi('ninjaXpress'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {
@@ -212,7 +220,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testJetExpressResponse()
     {
         $GTrack   = new GTrack();
-        $get      = $GTrack->jetExpress('644031585256');
+        $get      = $GTrack->jetExpress($this->getValidResi('jetExpress'));
         $response = json_decode(json_encode($get), true);
 
         foreach (static::$responseKey as $key => $val) {

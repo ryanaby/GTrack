@@ -103,8 +103,8 @@ class GTrack
             ->setHeaders([
                 'User-Agent' => Constants::DALVIK_UA,
                 'Host'       => Constants::TIKI_HOST,
-            ])
-            ->setBasicAuthentication('6871471541890123049', '842ab488840fbab11e2a2cd90a9a14d030fedef8');
+                'Authorization' => '0437fb74-91bd-11e9-a74c-06f2c0b7c6f0-91bf-11e9-a74c-06f2c4b0b602',
+            ]);
 
         $try    = 3;
         $i      = 0;

@@ -7,9 +7,9 @@ class Constants
     const JNE           = 'http://apiv2.jne.co.id:10101/tracing/api/list/myjne/cnote/%s';
     const JNT_HOST      = 'jk.jet.co.id:22234';
     const JNT           = 'http://jk.jet.co.id:22234/jandt-app-ifd-web/router.do';
-    const TIKI_HOST     = 'mobile.mytiki.net';
-    const TIKI_INFO     = 'http://mobile.mytiki.net/connote/info';
-    const TIKI_HISTORY  = 'http://mobile.mytiki.net/connote/mpds/history';
+    const TIKI_HOST     = 'my.tiki.id';
+    const TIKI_INFO     = 'https://my.tiki.id/api/connote/info';
+    const TIKI_HISTORY  = 'https://my.tiki.id/api/connote/history';
     const POS_GET       = 'https://www.posindonesia.co.id/id/tracking?resi=%s';
     const POS           = 'https://www.posindonesia.co.id/id/api-get-resi';
     const WAHANA_HOST   = 'intranet.wahana.com';

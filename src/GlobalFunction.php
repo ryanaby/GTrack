@@ -67,7 +67,7 @@ class GlobalFunction
      * @param string $start   awalan
      * @param string $end     akhiran
      */
-    public function GetBetween($content, $start, $end)
+    public static function GetBetween($content, $start, $end)
     {
         $r = explode($start, $content);
         if (isset($r[1])) {
