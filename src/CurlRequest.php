@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack;
 
 use \Curl\Curl;
@@ -24,6 +31,9 @@ class CurlRequest
         $this->_basicAuth   = '';
     }
 
+    /**
+     * Curl Request
+     */
     public function request()
     {
         $curl = new Curl();
@@ -47,6 +57,12 @@ class CurlRequest
         return $this;
     }
 
+    /**
+     * Post data
+     *
+     * @param string $url  urlnya
+     * @param array  $data postdata
+     */
     public function post($url, $data)
     {
         $this->_post    = $this->curl->post($url, $data);
@@ -55,7 +71,13 @@ class CurlRequest
         return $this;
     }
 
-    public function get($url, $data = array())
+    /**
+     * Get data
+     *
+     * @param string $url  urlnya
+     * @param array  $data datanya
+     */
+    public function get($url, $data = [])
     {
         $this->_get     = $this->curl->get($url, $data);
         $this->response = $this->curl->response;
@@ -63,6 +85,11 @@ class CurlRequest
         return $this;
     }
 
+    /**
+     * Set header
+     *
+     * @param array $arr header array
+     */
     public function setHeaders($arr)
     {
         $this->_headers = $this->curl->setHeaders($arr);
@@ -70,6 +97,11 @@ class CurlRequest
         return $this;
     }
 
+    /**
+     * Set cookie
+     *
+     * @param array $arr cookie array
+     */
     public function setCookies($arr)
     {
         $this->_cookies = $this->curl->setCookies($arr);
@@ -77,11 +109,20 @@ class CurlRequest
         return $this;
     }
 
+    /**
+     * Get response
+     */
     public function getResponse()
     {
         return $this->curl->response;
     }
 
+    /**
+     * Set basic Authentication
+     *
+     * @param string $username username / value
+     * @param string $password password / key
+     */
     public function setBasicAuthentication($username, $password)
     {
         $this->_basicAuth = $this->curl->setBasicAuthentication($username, $password);

@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * Penjelasan contoh Config: https://mlocati.github.io/php-cs-fixer-configurator/#version:2.15
+ */
+
+$header = <<<'EOF'
+Global Tesla - globaltesla.com
+
+@author     Global Tesla <dev@globaltesla.com>
+@copyright  2019 Global Tesla
+EOF;
+$config = PhpCsFixer\Config::create()
+    ->setRiskyAllowed(true)
+    ->setRules([
+        '@PSR1'                                      => true,
+        '@PSR2'                                      => true,
+        'psr4'                                       => true,
+        'array_indentation'                          => true,
+        'indentation_type'                           => true,
+        'single_quote'                               => true,
+        'concat_space'                               => ['spacing' => 'one'],
+        'cast_spaces'                                => ['space' => 'single'],
+        'declare_equal_normalize'                    => ['space' => 'single'],
+        'binary_operator_spaces'                     => ['default' => 'align'],
+        'array_syntax'                               => ['syntax' => 'short'],
+        'align_multiline_comment'                    => ['comment_type' => 'phpdocs_like'],
+        'blank_line_after_opening_tag'               => true,
+        'blank_line_before_statement'                => ['statements' => ['return']],
+        'no_singleline_whitespace_before_semicolons' => true,
+        'no_spaces_around_offset'                    => true,
+        'no_unused_imports'                          => true,
+        'no_whitespace_before_comma_in_array'        => true,
+        'no_whitespace_in_blank_line'                => true,
+        'phpdoc_add_missing_param_annotation'        => true,
+        'phpdoc_align'                               => true,
+        'phpdoc_annotation_without_dot'              => true,
+        'phpdoc_order'                               => true,
+        'phpdoc_scalar'                              => true,
+        'phpdoc_separation'                          => true,
+        'single_blank_line_before_namespace'         => true,
+        'single_line_comment_style'                  => true,
+        'space_after_semicolon'                      => true,
+        'ternary_operator_spaces'                    => true,
+        'trim_array_spaces'                          => true,
+        'header_comment' => [
+            'commentType'   => 'PHPDoc',
+            'header'        => $header,
+            'location'      => 'after_open',
+            'separate'      => 'bottom',
+        ],
+    ])
+    ->setFinder(
+        PhpCsFixer\Finder::create()
+            ->exclude('vendor')
+            ->in(__DIR__)
+    )
+    ->setUsingCache(false);
+
+try {
+    PhpCsFixer\FixerFactory::create()
+        ->registerBuiltInFixers()
+        ->registerCustomFixers($config->getCustomFixers())
+        ->useRuleSet(new PhpCsFixer\RuleSet($config->getRules()));
+} catch (PhpCsFixer\ConfigurationException\InvalidConfigurationException $e) {
+    $config->setRules([]);
+} catch (UnexpectedValueException $e) {
+    $config->setRules([]);
+}
+
+return $config;

@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack\Response;
 
 use \GTrack\GlobalFunction;
@@ -16,7 +23,7 @@ class WahanaResponse
     /**
      * Format result yang diproses
      *
-     * @param  object $response response dari request
+     * @param object $response response dari request
      *
      * @return object
      */
@@ -30,6 +37,7 @@ class WahanaResponse
         if ($isError) {
             $data['error']      = $isError;
             $data['message']    = self::$messageStatus;
+
             return json_decode(json_encode($data));
         }
 
@@ -74,19 +82,30 @@ class WahanaResponse
     /**
      * Get status dan message
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return bool
      */
     private static function isError($response)
     {
         if ($response->status == 'error') {
             self::$messageStatus = $response->error;
+
             return true;
         } else {
             self::$messageStatus = 'success';
+
             return false;
         }
     }
 
+    /**
+     * Get status pengiriman
+     *
+     * @param object $response response dari request
+     *
+     * @return string
+     */
     public static function getStatusDelivery($response)
     {
         if ($response->StatusTerakhir == 3) {
@@ -99,7 +118,9 @@ class WahanaResponse
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return array
      */
     private static function getHistory($response)
     {

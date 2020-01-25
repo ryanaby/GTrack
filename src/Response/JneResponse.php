@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack\Response;
 
 use \GTrack\GlobalFunction;
@@ -14,7 +21,7 @@ class JneResponse
     /**
      * Format result yang diproses
      *
-     * @param  object $response response dari request
+     * @param object $response response dari request
      *
      * @return object
      */
@@ -28,6 +35,7 @@ class JneResponse
         if ($isError) {
             $data['error']      = $isError;
             $data['message']    = self::$messageStatus;
+
             return json_decode(json_encode($data));
         }
 
@@ -44,8 +52,8 @@ class JneResponse
             'tanggal_terima'    => GlobalFunction::setDate($cnote->cnote_pod_date),
             'asal_pengiriman'   => $detail->cnote_origin,
             'tujuan_pengiriman' => $cnote->city_name,
-            'harga'             => (int)$cnote->amount,
-            'berat'             => (int)$cnote->weight * 1000, // gram
+            'harga'             => (int) $cnote->amount,
+            'berat'             => (int) $cnote->weight * 1000, // gram
             'catatan'           => $cnote->goods_desc,
         ];
         $data['pengirim']       = [
@@ -73,15 +81,19 @@ class JneResponse
     /**
      * Get status dan message
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return bool
      */
     private static function isError($response)
     {
         if (isset($response->status) && !$response->status) {
             self::$messageStatus = $response->error;
+
             return true;
         } else {
             self::$messageStatus = 'success';
+
             return false;
         }
     }
@@ -89,7 +101,9 @@ class JneResponse
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return array
      */
     private static function getHistory($response)
     {

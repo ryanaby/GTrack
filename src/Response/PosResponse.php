@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack\Response;
 
 use \GTrack\GlobalFunction;
@@ -15,7 +22,7 @@ class PosResponse
     /**
      * Format result yang diproses
      *
-     * @param  object $response response dari request
+     * @param object $response response dari request
      *
      * @return object
      */
@@ -29,6 +36,7 @@ class PosResponse
         if ($isError) {
             $data['error']      = $isError;
             $data['message']    = self::$messageStatus;
+
             return json_decode(json_encode($data));
         }
 
@@ -75,32 +83,39 @@ class PosResponse
     /**
      * Get status dan message
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return bool
      */
     private static function isError($response)
     {
         if (isset($response->api_callback->response)) {
             if (is_null($response->api_callback->response)) {
                 self::$messageStatus = 'Data tidak ditemukan.';
+
                 return true;
             } else {
                 self::$messageStatus = 'success';
+
                 return false;
             }
         }
         self::$messageStatus = 'Server error, Please try again';
+
         return true;
     }
 
     /**
      * Get info
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return object
      */
     private static function getInfo($response)
     {
-        $data = end($response->api_callback->response->data);
-        $ket  = explode('~~', $data->description);
+        $data  = end($response->api_callback->response->data);
+        $ket   = explode('~~', $data->description);
         $data2 = $response->api_callback->response->data[0];
 
         $info['no_awb']            = strval($data->barcode);
@@ -122,20 +137,22 @@ class PosResponse
             $info['tanggal_terima'] = GlobalFunction::setDate($data2->eventDate);
         }
 
-        return (object)$info;
+        return (object) $info;
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return array
      */
     private static function getHistory($response)
     {
         $history = [];
 
         foreach ($response->api_callback->response->data as $k => $v) {
-            $desc = explode('~~', $v->description);
+            $desc                    = explode('~~', $v->description);
             $history[$k]['tanggal']  = GlobalFunction::setDate($v->eventDate);
             $history[$k]['posisi']   = ltrim($desc[1]);
             $history[$k]['message']  = $desc[0];

@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack;
 
 class Constants

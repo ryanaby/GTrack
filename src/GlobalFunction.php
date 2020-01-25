@@ -1,4 +1,10 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
 
 namespace GTrack;
 
@@ -11,9 +17,11 @@ class GlobalFunction
     /**
      * Generate random string
      *
-     * @param  int     $length      Panjang karakter
-     * @param  boolean $strOnly     Yang ditampilkan hanya string
-     * @param  boolean $smallStr    Yang ditampilkan hanya huruf kecil & digit
+     * @param int  $length   Panjang karakter
+     * @param bool $strOnly  Yang ditampilkan hanya string
+     * @param bool $smallStr Yang ditampilkan hanya huruf kecil & digit
+     *
+     * @return string
      */
     public static function randomStr($length = 10, $strOnly = false, $smallStr = false)
     {
@@ -40,7 +48,10 @@ class GlobalFunction
     /**
      * Untuk format waktu
      *
-     * @param string $date tanggalnya
+     * @param string $date      tanggalnya
+     * @param bool   $timestamp true untuk mode timestamp
+     *
+     * @return string
      */
     public static function setDate($date, $timestamp = false)
     {
@@ -55,6 +66,8 @@ class GlobalFunction
      * Set data jika null
      *
      * @param string $value String yang akan di proses
+     *
+     * @return mixed
      */
     public static function setIfNull($value)
     {
@@ -63,17 +76,22 @@ class GlobalFunction
 
     /**
      * Untuk cari string diantara string
+     *
      * @param string $content contentnya
      * @param string $start   awalan
      * @param string $end     akhiran
+     *
+     * @return string
      */
     public static function GetBetween($content, $start, $end)
     {
         $r = explode($start, $content);
         if (isset($r[1])) {
             $r = explode($end, $r[1]);
+
             return $r[0];
         }
+
         return '';
     }
 }

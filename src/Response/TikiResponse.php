@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack\Response;
 
 use \GTrack\GlobalFunction;
@@ -16,7 +23,7 @@ class TikiResponse
     /**
      * Format result yang diproses
      *
-     * @param  object $response response dari request
+     * @param object $response response dari request
      *
      * @return object
      */
@@ -30,6 +37,7 @@ class TikiResponse
         if ($isError) {
             $data['error']      = $isError;
             $data['message']    = self::$messageStatus;
+
             return json_decode(json_encode($data));
         }
 
@@ -46,8 +54,8 @@ class TikiResponse
             'tanggal_terima'    => self::$tglTerima,
             'asal_pengiriman'   => $info->consignor_address,
             'tujuan_pengiriman' => $info->destination_city_name,
-            'harga'             => (int)$info->shipment_fee,
-            'berat'             => (int)$info->weight * 1000, // gram
+            'harga'             => (int) $info->shipment_fee,
+            'berat'             => (int) $info->weight * 1000, // gram
             'catatan'           => null,
         ];
         $data['pengirim']       = [
@@ -75,15 +83,19 @@ class TikiResponse
     /**
      * Get status dan message
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return bool
      */
     private static function isError($response)
     {
         if (empty($response->info)) {
             self::$messageStatus = 'No AWB tidak ditemukan.';
+
             return true;
         } else {
             self::$messageStatus = 'success';
+
             return false;
         }
     }
@@ -91,7 +103,9 @@ class TikiResponse
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return array
      */
     private static function getHistory($response)
     {

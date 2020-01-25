@@ -63,7 +63,7 @@ $GTrack = new GTrack($proxy);
 GTrack::jne('xxxxxxx')
 GTrack::jnt('xxxxxxx')
 GTrack::tiki('xxxxxxx')
-~~GTrack::pos('xxxxxxx')~~
+GTrack::pos('xxxxxxx')
 GTrack::wahana('xxxxxxx')
 GTrack::siCepat('xxxxxxx')
 GTrack::ninjaXpress('xxxxxxx')

@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack\Response;
 
 use \GTrack\GlobalFunction;
@@ -13,7 +20,7 @@ class JntResponse
     /**
      * Format result yang diproses
      *
-     * @param  object $response response dari request
+     * @param object $response response dari request
      *
      * @return object
      */
@@ -30,6 +37,7 @@ class JntResponse
         if ($isError) {
             $data['error']      = $isError;
             $data['message']    = self::$messageStatus;
+
             return json_decode(json_encode($data));
         }
 
@@ -75,15 +83,19 @@ class JntResponse
     /**
      * Get status dan message
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return bool
      */
     private static function isError($response)
     {
         if (empty($response->details)) {
             self::$messageStatus = 'No AWB tidak ditemukan.';
+
             return true;
         } else {
             self::$messageStatus = 'success';
+
             return false;
         }
     }
@@ -91,7 +103,9 @@ class JntResponse
     /**
      * Get detail pengiriman
      *
-     * @param  array $details array dari history jnt
+     * @param array $details array dari history jnt
+     *
+     * @return array
      */
     private static function getDetail($details)
     {
@@ -120,7 +134,9 @@ class JntResponse
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param  object $response
+     * @param array $details detail history
+     *
+     * @return array
      */
     private static function getHistory($details)
     {

@@ -1,10 +1,12 @@
 <?php
-namespace GTrack;
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
 
-use \Curl\Curl;
-use \GTrack\CurlRequest;
-use \GTrack\Constants;
-use \GTrack\GlobalFunction;
+namespace GTrack;
 
 /**
  * GTrack - Resi Tracker API
@@ -34,7 +36,7 @@ class GTrack
     /**
      * JNE
      *
-     * @param  string $resi Nomor resi yang mau di cek
+     * @param string $resi Nomor resi yang mau di cek
      *
      * @return object
      */
@@ -58,7 +60,7 @@ class GTrack
     /**
      * J&T
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */
@@ -92,7 +94,7 @@ class GTrack
     /**
      * TIKI
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */
@@ -101,8 +103,8 @@ class GTrack
         $curl = (new CurlRequest)
             ->request()
             ->setHeaders([
-                'User-Agent' => Constants::DALVIK_UA,
-                'Host'       => Constants::TIKI_HOST,
+                'User-Agent'    => Constants::DALVIK_UA,
+                'Host'          => Constants::TIKI_HOST,
                 'Authorization' => '0437fb74-91bd-11e9-a74c-06f2c0b7c6f0-91bf-11e9-a74c-06f2c4b0b602',
             ]);
 
@@ -147,7 +149,7 @@ class GTrack
     /**
      * POS INDONESIA
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */
@@ -176,7 +178,7 @@ class GTrack
     /**
      * WAHANA
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */
@@ -200,7 +202,7 @@ class GTrack
     /**
      * SICEPAT
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */
@@ -221,7 +223,7 @@ class GTrack
     /**
      * NINJAXPRESS
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */
@@ -239,7 +241,7 @@ class GTrack
     /**
      * JET EXPRESS
      *
-     * @param  string $resi Nomor resi yang mau di cek.
+     * @param string $resi nomor resi yang mau di cek
      *
      * @return object
      */

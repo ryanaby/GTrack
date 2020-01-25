@@ -1,4 +1,11 @@
 <?php
+/**
+ * Global Tesla - globaltesla.com
+ *
+ * @author     Global Tesla <dev@globaltesla.com>
+ * @copyright  2019 Global Tesla
+ */
+
 namespace GTrack\Response;
 
 use \GTrack\GlobalFunction;
@@ -14,7 +21,7 @@ class SiCepatResponse
     /**
      * Format result yang diproses
      *
-     * @param  object $response response dari request
+     * @param object $response response dari request
      *
      * @return object
      */
@@ -28,6 +35,7 @@ class SiCepatResponse
         if ($isError) {
             $data['error']      = $isError;
             $data['message']    = self::$messageStatus;
+
             return json_decode(json_encode($data));
         }
 
@@ -72,23 +80,35 @@ class SiCepatResponse
     /**
      * Get status dan message
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return bool
      */
     private static function isError($response)
     {
         if ($response->status->code == 400) {
             self::$messageStatus = $response->status->description;
+
             return true;
         } else {
             self::$messageStatus = 'success';
+
             return false;
         }
     }
 
+    /**
+     * Get status pengiriman
+     *
+     * @param object $response response dari request
+     *
+     * @return string
+     */
     public static function getStatusDelivery($response)
     {
         if ($response->result->last_status->status == 'DELIVERED') {
             self::$nama_penerima = preg_replace('/(.*)\[(.*) - (.*)\](.*)/', '$2', $response->result->last_status->receiver_name);
+
             return 'DELIVERED';
         } else {
             return 'ON PROCESS';
@@ -98,7 +118,9 @@ class SiCepatResponse
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param  object $response
+     * @param object $response response dari request
+     *
+     * @return array
      */
     private static function getHistory($response)
     {
