@@ -1,21 +1,25 @@
 {
-    "name": "Global Resi",
-    "description": "heuheuheu",
+    "name": "walangkaji/gtrack",
+    "description": "API Cek Resi | Resi Tracker API",
     "type": "library",
-    "license": "heu",
+    "keywords": ["json", "php", "array"],
+    "license": "MIT",
     "authors": [
         {
-            "name": "GlobalTesla",
-            "email": "hi@globaltesla.com"
+            "name": "walangkaji",
+            "email": "walangkaji@globaltesla.com"
         }
     ],
     "require": {
-        "php-curl-class/php-curl-class": "@dev",
-        "phpunit/phpunit": "^8.0"
+        "php-curl-class/php-curl-class": "^8.5",
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
     },
     "autoload": {
         "psr-4": {
             "GTrack\\": "src/"
-        }
+        },
+        "classmap": ["src/"]
     }
 }

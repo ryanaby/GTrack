@@ -10,25 +10,17 @@ GTrack merupakan sebuah repository yang digunakan untuk Tracking / Cek Resi pada
 ----------
 ### Cara Install
 
-### 1. Via Clone Tepo
+### Composer
+```sh
+$ composer require walangkaji/gtrack
+```
+
+### Clone
 ```sh
 $ git clone https://github.com/walangkaji/GTrack.git
 $ cd GTrack/
 $ composer install
 ```
-
-### 2. Via Donglot Tepo
-1. Download zip [Disini](https://github.com/walangkaji/GTrack/archive/master.zip).
-2. Extract.
-3. Install requirements menggunakan composer:
-
-```sh
-$ composer install
-```
-
-### Saya belum mempunyai Composer
-
-Bisa Install & Download [Disini](https://getcomposer.org/download/).
 
 ### Cara Pakai
 
