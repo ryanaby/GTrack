@@ -13,9 +13,6 @@
     "require": {
         "php-curl-class/php-curl-class": "^8.5"
     },
-    "require-dev": {
-        "phpunit/phpunit": "*"
-    },
     "autoload": {
         "psr-4": {
             "GTrack\\": "src/"
