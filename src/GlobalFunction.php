@@ -56,10 +56,10 @@ class GlobalFunction
     public static function setDate($date, $timestamp = false)
     {
         if ($timestamp) {
-            return date('d-m-Y h:i', $date);
+            return date('d-m-Y H:i', $date);
         }
 
-        return date('d-m-Y h:i', strtotime($date));
+        return date('d-m-Y H:i', strtotime($date));
     }
 
     /**
