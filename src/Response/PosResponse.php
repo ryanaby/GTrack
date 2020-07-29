@@ -1,23 +1,34 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class PosResponse
+class PosResponse extends Response
 {
-    public static $messageStatus;
-    public static $tanggal_kirim;
-    public static $yang_menerima;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'POS INDONESIA',
+        'site' => 'posindonesia.co.id'
+    ];
+
+    /** @var string */
+    private $namaPenerima;
+
+    /** @var string */
+    private $tanggalTerima;
+
+    /** @var string */
+    private $statusDelivery;
 
     /**
      * Format result yang diproses
@@ -26,146 +37,126 @@ class PosResponse
      *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'POS INDONESIA';
-        $data['site']           = 'http://www.posindonesia.co.id';
+        $response = reset($this->getResponse()->result); // Get first array
+        $data     = explode(';', $response->description);
+        $history  = $this->getHistory();
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $info                   = self::getInfo($response);
-        $history                = self::getHistory($response);
-
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => null,
-            'no_awb'            => $info->no_awb,
-            'service'           => $info->service,
-            'status'            => strtoupper($info->status_pengiriman),
-            'tanggal_kirim'     => $info->tanggal_kirim,
-            'tanggal_terima'    => $info->tanggal_terima,
-            'asal_pengiriman'   => $info->asal_pengiriman,
-            'tujuan_pengiriman' => $info->tujuan_pengiriman,
-            'harga'             => null,
-            'berat'             => $info->berat, // gram
-            'catatan'           => $info->catatan,
-        ];
-        $data['pengirim']       = [
-            'nama'              => strtoupper($info->nama_pengirim),
-            'phone'             => $info->phone_pengirim,
-            'kota'              => $info->kota_pengirim,
-            'alamat1'           => $info->asal_pengiriman,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => strtoupper($info->nama_penerima),
-            'nama_penerima'     => strtoupper(self::$yang_menerima),
-            'phone'             => $info->phone_penerima,
-            'kota'              => $info->kota_penerima,
-            'alamat1'           => $info->tujuan_pengiriman,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = $history;
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => strval($response->barcode),
+                'service'           => preg_replace('/(.*)LAYANAN :(.*)/', '$2', $data[0]),
+                'status'            => $this->statusDelivery,
+                'tanggal_kirim'     => Utils::setDate($response->eventDate),
+                'tanggal_terima'    => $this->tanggalTerima,
+                'asal_pengiriman'   => $data[4],
+                'tujuan_pengiriman' => $data[10],
+                'harga'             => null,
+                'berat'             => null, // gram
+                'catatan'           => null,
+            ],
+            'pengirim'              => [
+                'nama'              => preg_replace('/(.*)PENGIRIM : (.*)/', '$2', $data[1]),
+                'phone'             => $data[3],
+                'kota'              => $data[4],
+                'alamat'            => $data[2] . ', ' . $data[5],
+            ],
+            'penerima'              => [
+                'nama'              => preg_replace('/(.*)PENERIMA : (.*)/', '$2', $data[7]),
+                'nama_penerima'     => $this->namaPenerima,
+                'phone'             => $data[9],
+                'kota'              => $data[10],
+                'alamat'            => $data[8] . ', ' . $data[11],
+            ],
+            'history'               => $history,
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
-        if (isset($response->api_callback->response)) {
-            if (is_null($response->api_callback->response)) {
-                self::$messageStatus = 'Data tidak ditemukan.';
-
-                return true;
-            } else {
-                self::$messageStatus = 'success';
-
-                return false;
-            }
-        }
-        self::$messageStatus = 'Server error, Please try again';
-
-        return true;
-    }
-
-    /**
-     * Get info
-     *
-     * @param object $response response dari request
-     *
-     * @return object
-     */
-    private static function getInfo($response)
-    {
-        $data  = end($response->api_callback->response->data);
-        $ket   = explode('~~', $data->description);
-        $data2 = $response->api_callback->response->data[0];
-
-        $info['no_awb']            = strval($data->barcode);
-        $info['service']           = str_replace('Produk : ', '', $ket[10]);
-        $info['tanggal_kirim']     = GlobalFunction::setDate($data->eventDate);
-        $info['asal_pengiriman']   = ltrim($ket[3]);
-        $info['tujuan_pengiriman'] = ltrim($ket[7]);
-        $info['berat']             = ltrim(str_replace(['Berat :', 'gr'], '', $ket[11]));
-        $info['catatan']           = str_replace('Isi Kiriman : ', '', $ket[13]);
-        $info['nama_pengirim']     = str_replace('Pengirim : ', '', $ket[2]);
-        $info['phone_pengirim']    = ltrim($ket[4]);
-        $info['kota_pengirim']     = ltrim($ket[5]);
-        $info['nama_penerima']     = ltrim(str_replace('Penerima : ', '', $ket[6]));
-        $info['phone_penerima']    = ltrim($ket[8]);
-        $info['kota_penerima']     = ltrim($ket[9]);
-
-        $info['status_pengiriman'] = $data2->eventName;
-        if ($data2->eventName == 'SELESAI ANTAR') {
-            $info['tanggal_terima'] = GlobalFunction::setDate($data2->eventDate);
+        if (isset($this->getResponse()->errors)) {
+            return true;
         }
 
-        return (object) $info;
+        return false;
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param object $response response dari request
-     *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory()
     {
         $history = [];
 
-        foreach ($response->api_callback->response->data as $k => $v) {
-            $desc                    = explode('~~', $v->description);
-            $history[$k]['tanggal']  = GlobalFunction::setDate($v->eventDate);
-            $history[$k]['posisi']   = ltrim($desc[1]);
-            $history[$k]['message']  = $desc[0];
+        foreach ($this->getResponse()->result as $k => $v) {
+            $this->statusDelivery = $v->eventName;
 
-            if ($v->eventName == 'SELESAI ANTAR') {
-                foreach ($desc as $key => $val) {
-                    if (strpos($val, 'Diterima oleh') !== false) {
-                        self::$yang_menerima = ltrim(str_replace('Diterima oleh', '', $val));
+            switch ($v->eventName) {
+                case 'POSTING LOKET':
+                    $history[$k] = [
+                        'tanggal' => Utils::setDate($v->eventDate),
+                        'posisi'  => $v->officeName,
+                        'message' => 'Penerimaan di loket ' . $v->officeName,
+                    ];
+                    break;
+
+                case 'MANIFEST SERAH':
+                    $history[$k] = [
+                        'tanggal' => Utils::setDate($v->eventDate),
+                        'posisi'  => $v->officeName,
+                        'message' => 'Diteruskan ke Hub ' . preg_replace('/(.*)KANTOR TUJUAN : (.*)/', '$2', $v->description),
+                    ];
+                    break;
+
+                case 'MANIFEST TERIMA':
+                    $history[$k] = [
+                        'tanggal' => Utils::setDate($v->eventDate),
+                        'posisi'  => $v->officeName,
+                        'message' => 'Tiba di Hub ' . $v->officeName,
+                    ];
+                    break;
+
+                case 'PROSES ANTAR':
+                    $history[$k] = [
+                        'tanggal' => Utils::setDate($v->eventDate),
+                        'posisi'  => $v->officeName,
+                        'message' => 'Proses antar di ' . $v->officeName,
+                    ];
+                    break;
+
+                case 'SELESAI ANTAR':
+                    if (strpos($v->description, 'Antar Ulang') !== false) {
+                        $message  = "Gagal antar di $v->officeName. ";
+                        $message .= preg_replace('/(.*)KETERANGAN : (.*)/', '$2', $v->description);
+                    } else {
+                        $this->namaPenerima  = preg_replace('/(.*)PENERIMA \/ KETERANGAN : (.*)/', '$2', $v->description);
+                        $this->tanggalTerima = Utils::setDate($v->eventDate);
+
+                        $message  = "Selesai antar di $v->officeName. ";
+                        $message .= Utils::getBetween($v->description, 'STATUS: ', ';') . "($this->namaPenerima)";
                     }
-                }
+
+                    $history[$k] = [
+                        'tanggal' => Utils::setDate($v->eventDate),
+                        'posisi'  => $v->officeName,
+                        'message' => rtrim(preg_replace('!\s+!', ' ', $message)),
+                    ];
+                    break;
+
+                default:
+                    // code...
+                    break;
             }
         }
 
-        return array_reverse($history);
+        return $history;
     }
 }

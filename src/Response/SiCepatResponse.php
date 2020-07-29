@@ -1,100 +1,80 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class SiCepatResponse
+class SiCepatResponse extends Response
 {
-    public static $messageStatus;
-    public static $nama_penerima;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'SICEPAT',
+        'site' => 'sicepat.com'
+    ];
+
+    /** @var string */
+    private $namaPenerima;
 
     /**
      * Format result yang diproses
      *
-     * @param object $response response dari request
-     *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'SICEPAT';
-        $data['site']           = 'http://sicepat.com';
+        $response = $this->getResponse()->sicepat->result;
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $history                = self::getHistory($response);
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => null,
-            'no_awb'            => $response->result->waybill_number,
-            'service'           => $response->result->service,
-            'status'            => self::getStatusDelivery($response),
-            'tanggal_kirim'     => GlobalFunction::setDate($response->result->send_date),
-            'tanggal_terima'    => GlobalFunction::setDate($response->result->POD_receiver_time),
-            'asal_pengiriman'   => strtoupper($response->result->sender_address),
-            'tujuan_pengiriman' => strtoupper($response->result->receiver_address),
-            'harga'             => null,
-            'berat'             => $response->result->weight * 1000, // gram
-            'catatan'           => null,
-        ];
-        $data['pengirim']       = [
-            'nama'              => trim(strtoupper($response->result->sender)),
-            'phone'             => null,
-            'kota'              => strtoupper($response->result->sender_address),
-            'alamat1'           => strtoupper($response->result->sender_address),
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => trim(strtoupper($response->result->receiver_name)),
-            'nama_penerima'     => trim(strtoupper(self::$nama_penerima)),
-            'phone'             => null,
-            'kota'              => strtoupper($response->result->receiver_address),
-            'alamat1'           => strtoupper($response->result->receiver_address),
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = $history;
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $response->waybill_number,
+                'service'           => $response->service,
+                'status'            => $this->getStatusDelivery($response),
+                'tanggal_kirim'     => Utils::setDate($response->send_date),
+                'tanggal_terima'    => Utils::setDate($response->POD_receiver_time),
+                'asal_pengiriman'   => strtoupper($response->sender_address),
+                'tujuan_pengiriman' => strtoupper($response->receiver_address),
+                'harga'             => $response->realprice,
+                'berat'             => $response->weight * 1000, // gram
+                'catatan'           => null,
+            ],
+            'pengirim'              => [
+                'nama'              => trim(strtoupper($response->sender)),
+                'phone'             => null,
+                'kota'              => strtoupper($response->sender_address),
+                'alamat'            => strtoupper($response->sender_address),
+            ],
+            'penerima'              => [
+                'nama'              => trim(strtoupper($response->receiver_name)),
+                'nama_penerima'     => trim(strtoupper($this->namaPenerima)),
+                'phone'             => null,
+                'kota'              => strtoupper($response->receiver_address),
+                'alamat'            => strtoupper($response->receiver_address),
+            ],
+            'history'               => $this->getHistory($response)
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
-        if ($response->status->code == 400) {
-            self::$messageStatus = $response->status->description;
-
+        if ($this->getResponse()->sicepat->status->code !== 200) {
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -104,10 +84,10 @@ class SiCepatResponse
      *
      * @return string
      */
-    public static function getStatusDelivery($response)
+    private function getStatusDelivery($response)
     {
-        if ($response->result->last_status->status == 'DELIVERED') {
-            self::$nama_penerima = preg_replace('/(.*)\[(.*) - (.*)\](.*)/', '$2', $response->result->last_status->receiver_name);
+        if ($response->last_status->status == 'DELIVERED') {
+            $this->namaPenerima = preg_replace('/(.*)\[(.*) - (.*)\](.*)/', '$2', $response->last_status->receiver_name);
 
             return 'DELIVERED';
         } else {
@@ -122,23 +102,23 @@ class SiCepatResponse
      *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory($response)
     {
         $history = [];
 
-        foreach ($response->result->track_history as $k => $v) {
+        foreach ($response->track_history as $k => $v) {
             if ($v->status == 'DELIVERED') {
-                $history[$k]['posisi']     = 'Diterima';
-                $history[$k]['message']    = $v->receiver_name;
+                $history[$k]['posisi']  = 'Diterima';
+                $history[$k]['message'] = $v->receiver_name;
             } else {
-                $history[$k]['tanggal']    = GlobalFunction::setDate($v->date_time);
-                $history[$k]['posisi']     = preg_replace('/(.*)\[(.*)\](.*)/', '$2', $v->city);
+                $history[$k]['tanggal'] = Utils::setDate($v->date_time);
+                $history[$k]['posisi']  = preg_replace('/(.*)\[(.*)\](.*)/', '$2', $v->city);
 
                 if (strpos($v->city, 'SIGESIT') !== false) {
                     $history[$k]['posisi'] = 'Diantar';
                 }
 
-                $history[$k]['message']    = $v->city;
+                $history[$k]['message'] = $v->city;
             }
         }
 

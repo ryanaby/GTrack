@@ -1,103 +1,87 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class TikiResponse
+class TikiResponse extends Response
 {
-    public static $statusDelivery;
-    public static $penerima;
-    public static $tglTerima;
-    public static $messageStatus;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'TIKI',
+        'site' => 'tiki.id'
+    ];
+
+    /** @var string */
+    private $statusDelivery;
+
+    /** @var string */
+    private $namaPenerima;
+
+    /** @var string */
+    private $tanggalTerima;
 
     /**
      * Format result yang diproses
      *
-     * @param object $response response dari request
-     *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'TIKI';
-        $data['site']           = 'https://tiki.id';
+        $response = $this->getResponse()->response[0];
+        $history  = $this->getHistory($response);
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $info                   = $response->info;
-        $history                = self::getHistory($response);
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => null,
-            'no_awb'            => $info->cnno,
-            'service'           => $info->product,
-            'status'            => self::$statusDelivery,
-            'tanggal_kirim'     => GlobalFunction::setDate($info->sys_created_on),
-            'tanggal_terima'    => self::$tglTerima,
-            'asal_pengiriman'   => $info->consignor_address,
-            'tujuan_pengiriman' => $info->destination_city_name,
-            'harga'             => (int) $info->shipment_fee,
-            'berat'             => (int) $info->weight * 1000, // gram
-            'catatan'           => null,
-        ];
-        $data['pengirim']       = [
-            'nama'              => rtrim(strtoupper($info->consignor_name)),
-            'phone'             => null,
-            'kota'              => rtrim($info->consignor_address),
-            'alamat1'           => Globalfunction::setIfNull($info->consignor_address),
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => rtrim(strtoupper($info->consignee_name)),
-            'nama_penerima'     => self::$penerima,
-            'phone'             => null,
-            'kota'              => $info->destination_city_name,
-            'alamat1'           => Globalfunction::setIfNull($info->consignee_address),
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = $history;
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $response->cnno,
+                'service'           => $response->product,
+                'status'            => $this->statusDelivery,
+                'tanggal_kirim'     => Utils::setDate($response->sys_created_on),
+                'tanggal_terima'    => $this->tanggalTerima,
+                'asal_pengiriman'   => $response->consignor_address,
+                'tujuan_pengiriman' => $response->destination_city_name,
+                'harga'             => (int) $response->shipment_fee,
+                'berat'             => (int) $response->weight * 1000, // gram
+                'catatan'           => null,
+            ],
+            'pengirim'              => [
+                'nama'              => rtrim(strtoupper($response->consignor_name)),
+                'phone'             => null,
+                'kota'              => rtrim($response->consignor_address),
+                'alamat'            => Utils::setIfNull($response->consignor_address),
+            ],
+            'penerima'              => [
+                'nama'              => rtrim(strtoupper($response->consignee_name)),
+                'nama_penerima'     => $this->namaPenerima,
+                'phone'             => null,
+                'kota'              => $response->destination_city_name,
+                'alamat'            => Utils::setIfNull($response->consignee_address),
+            ],
+            'history'               => $history
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
-        if (empty($response->info)) {
-            self::$messageStatus = 'No AWB tidak ditemukan.';
-
+        if ($this->getResponse()->status !== 200) {
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -107,24 +91,28 @@ class TikiResponse
      *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory($response)
     {
         $history = [];
 
         foreach (array_reverse($response->history) as $k => $v) {
             if ($v->status == 'POD 01') {
-                self::$statusDelivery   = 'DELIVERED';
-                self::$penerima         = preg_replace('/(.*) RECEIVED BY: (.*)/', '$2', $v->noted);
-                self::$tglTerima        = GlobalFunction::setDate($v->entry_date);
+                $this->statusDelivery = 'DELIVERED';
+                $this->namaPenerima   = preg_replace('/(.*) RECEIVED BY: (.*)/', '$2', $v->noted);
+                $this->tanggalTerima  = Utils::setDate($v->entry_date);
+            } elseif ($v->status == 'POD 04') {
+                $this->statusDelivery = 'SUCCESS';
+                $this->namaPenerima   = preg_replace('/(.*) PENGIRIM: (.*)/', '$2', $v->noted);
+                $this->tanggalTerima  = Utils::setDate($v->entry_date);
             } else {
-                self::$statusDelivery   = 'ON PROCESS';
-                self::$penerima         = null;
-                self::$tglTerima        = null;
+                $this->statusDelivery = 'ON PROCESS';
+                $this->namaPenerima   = null;
+                $this->tanggalTerima  = null;
             }
 
-            $history[$k]['tanggal']     = GlobalFunction::setDate($v->entry_date);
-            $history[$k]['posisi']      = rtrim($v->entry_name);
-            $history[$k]['message']     = $v->noted;
+            $history[$k]['tanggal'] = Utils::setDate($v->entry_date);
+            $history[$k]['posisi']  = rtrim($v->entry_name);
+            $history[$k]['message'] = $v->noted;
         }
 
         return $history;

@@ -1,137 +1,103 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class WahanaResponse
+class WahanaResponse extends Response
 {
-    public static $messageStatus;
-    public static $tanggal_terima;
-    public static $nama_penerima;
-    public static $asal_pengiriman;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'WAHANA',
+        'site' => 'wahana.com'
+    ];
+
+    /** @var string */
+    private $tanggalTerima;
+
+    /** @var string */
+    private $namaPenerima;
+
+    /** @var string */
+    private $asalPengiriman;
 
     /**
      * Format result yang diproses
      *
-     * @param object $response response dari request
-     *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'WAHANA';
-        $data['site']           = 'https://wahana.com';
+        $history = $this->getHistory();
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $history                = self::getHistory($response);
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => null,
-            'no_awb'            => $response->TTKNO,
-            'service'           => null,
-            'status'            => self::getStatusDelivery($response),
-            'tanggal_kirim'     => GlobalFunction::setDate($response->data[0]->Tanggal),
-            'tanggal_terima'    => GlobalFunction::setDate(self::$tanggal_terima),
-            'asal_pengiriman'   => strtoupper(self::$asal_pengiriman),
-            'tujuan_pengiriman' => strtoupper($response->Alamatpenerima),
-            'harga'             => null,
-            'berat'             => null, // gram
-            'catatan'           => null,
-        ];
-        $data['pengirim']       = [
-            'nama'              => trim(strtoupper(preg_replace('/\s+/', ' ', $response->Pengirim))),
-            'phone'             => null,
-            'kota'              => strtoupper(self::$asal_pengiriman),
-            'alamat1'           => strtoupper(self::$asal_pengiriman),
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => trim(strtoupper(preg_replace('/\s+/', ' ', $response->Penerima))),
-            'nama_penerima'     => trim(strtoupper(self::$nama_penerima)),
-            'phone'             => $response->NOTELP,
-            'kota'              => strtoupper($response->Alamatpenerima),
-            'alamat1'           => strtoupper($response->Alamatpenerima),
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = $history;
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $this->response->TTKNO,
+                'service'           => null,
+                'status'            => $this->response->StatusTerakhir == 3 ? 'DELIVERED' : 'ON PROCESS',
+                'tanggal_kirim'     => Utils::setDate(reset($this->response->data)->Tanggal),
+                'tanggal_terima'    => $this->tanggalTerima,
+                'asal_pengiriman'   => $this->asalPengiriman,
+                'tujuan_pengiriman' => $this->response->Alamatpenerima,
+                'harga'             => null,
+                'berat'             => null, // gram
+                'catatan'           => null,
+            ],
+            'pengirim'              => [
+                'nama'              => trim(strtoupper(preg_replace('/\s+/', ' ', $this->response->Pengirim))),
+                'phone'             => null,
+                'kota'              => $this->asalPengiriman,
+                'alamat'            => $this->asalPengiriman,
+            ],
+            'penerima'              => [
+                'nama'              => trim(strtoupper(preg_replace('/\s+/', ' ', $this->response->Penerima))),
+                'nama_penerima'     => rtrim($this->namaPenerima),
+                'phone'             => $this->response->NOTELP,
+                'kota'              => $this->response->Alamatpenerima,
+                'alamat'            => $this->response->Alamatpenerima,
+            ],
+            'history'               => $history
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
-        if ($response->status == 'error') {
-            self::$messageStatus = $response->error;
-
+        if ($this->getResponse()->status == 'error') {
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
         }
-    }
 
-    /**
-     * Get status pengiriman
-     *
-     * @param object $response response dari request
-     *
-     * @return string
-     */
-    public static function getStatusDelivery($response)
-    {
-        if ($response->StatusTerakhir == 3) {
-            return 'DELIVERED';
-        } else {
-            return 'ON PROCESS';
-        }
+        return false;
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param object $response response dari request
-     *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory()
     {
         $history = [];
 
-        foreach ($response->data as $k => $v) {
-            $history[$k]['tanggal'] = GlobalFunction::setDate($v->Tanggal);
+        foreach ($this->getResponse()->data as $k => $v) {
+            $history[$k]['tanggal'] = Utils::setDate($v->Tanggal);
 
             switch ($v->StatusInternal) {
                 case 'Baru':
-                    self::$asal_pengiriman = preg_replace('/Diterima di Sales Counter AGEN WPL (.*)/', '$1', $v->TrackStatusNama);
+                    $this->asalPengiriman  = preg_replace('/Diterima di Sales Counter AGEN WPL (.*)/', '$1', $v->TrackStatusNama);
                     $history[$k]['posisi'] = preg_replace('/Diterima di Sales Counter (.*)/', '$1', $v->TrackStatusNama);
                     break;
 
@@ -161,8 +127,8 @@ class WahanaResponse
 
                 case 'Terkirim/Diterima':
                     $history[$k]['posisi'] = 'Diterima';
-                    self::$tanggal_terima  = $v->Tanggal;
-                    self::$nama_penerima   = preg_replace('/Diterima oleh (.*)\((.*)/', '$1', $v->TrackStatusNama);
+                    $this->tanggalTerima   = $v->Tanggal;
+                    $this->namaPenerima    = preg_replace('/Diterima oleh (.*)\((.*)/', '$1', $v->TrackStatusNama);
                     break;
 
                 default:

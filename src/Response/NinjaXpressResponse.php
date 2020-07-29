@@ -1,23 +1,31 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class NinjaXpressResponse
+class NinjaXpressResponse extends Response
 {
-    public static $messageStatus;
-    public static $tanggal_kirim;
-    public static $tanggal_terima;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'NINJA XPRESS',
+        'site' => 'ninjaxpress.co'
+    ];
+
+    /** @var string */
+    private $tanggalKirim;
+
+    /** @var string */
+    private $tanggalTerima;
 
     /**
      * Format result yang diproses
@@ -26,77 +34,74 @@ class NinjaXpressResponse
      *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'NINJA XPRESS';
-        $data['site']           = 'https://www.ninjaxpress.co';
+        $response = reset($this->getResponse()->orders);
+        $history  = $this->getHistory($response);
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $response               = $response->orders[0];
-        $history                = self::getHistory($response);
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => $response->id,
-            'no_awb'            => $response->tracking_id,
-            'service'           => $response->service_type,
-            'status'            => ($response->status == 'Completed') ? 'DELIVERED' : strtoupper($response->status),
-            'tanggal_kirim'     => self::$tanggal_kirim,
-            'tanggal_terima'    => self::$tanggal_terima,
-            'asal_pengiriman'   => null,
-            'tujuan_pengiriman' => $response->to_city,
-            'harga'             => null,
-            'berat'             => null, // gram
-            'catatan'           => null,
-        ];
-        $data['pengirim']       = [
-            'nama'              => trim(strtoupper($response->from_name)),
-            'phone'             => null,
-            'kota'              => null,
-            'alamat1'           => null,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => null,
-            'nama_penerima'     => null,
-            'phone'             => null,
-            'kota'              => null,
-            'alamat1'           => null,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = $history;
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $response->tracking_id,
+                'service'           => $response->service_type,
+                'status'            => ($response->status == 'Completed') ? 'DELIVERED' : strtoupper($response->status),
+                'tanggal_kirim'     => $this->tanggalKirim,
+                'tanggal_terima'    => $this->tanggalTerima,
+                'asal_pengiriman'   => null,
+                'tujuan_pengiriman' => $response->to_city,
+                'harga'             => null,
+                'berat'             => null, // gram
+                'catatan'           => null,
+            ],
+            'pengirim'              => [
+                'nama'              => trim(strtoupper($response->from_name)),
+                'phone'             => null,
+                'kota'              => null,
+                'alamat'            => null,
+            ],
+            'penerima'              => [
+                'nama'              => $this->getPenerima($response),
+                'nama_penerima'     => $this->getPenerima($response),
+                'phone'             => null,
+                'kota'              => $response->to_city,
+                'alamat'            => $response->to_city,
+            ],
+            'history'               => $history
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
-        if (empty($response)) {
-            self::$messageStatus = 'No AWB tidak ditemukan.';
-
+        if (empty($this->getResponse())) {
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
         }
+
+        return false;
+    }
+
+    /**
+     * Get nama penerima
+     *
+     * @param object $response
+     *
+     * @return string|null
+     */
+    private function getPenerima($response)
+    {
+        if (!empty(($response->transactions))) {
+            $trx = end($response->transactions);
+            if (!is_null($trx->signature)) {
+                return $trx->signature->name;
+            }
+
+            return null;
+        }
+
+        return null;
     }
 
     /**
@@ -106,7 +111,7 @@ class NinjaXpressResponse
      *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory($response)
     {
         $history = [];
 
@@ -115,23 +120,25 @@ class NinjaXpressResponse
 
             if (strpos($v->description, ' - ') !== false) {
                 $posisi = strtoupper(preg_replace('/(.*) - (.*)/', '$2', $v->description));
+            } elseif (strpos($v->description, 'Penitipan Parsel')) {
+                $posisi = strtoupper(preg_replace('/(.*) Penitipan Parsel (.*)/', '$2', $v->description));
             } else {
                 $posisi = null;
             }
 
             if ($v->description == 'Order dibuat') {
-                self::$tanggal_kirim  = GlobalFunction::setDate($time, true);
+                $this->tanggalKirim = Utils::setDate($time, true);
             }
 
             if (strpos($v->description, 'Telah berhasil dijemput dari') !== false) {
-                self::$tanggal_kirim  = GlobalFunction::setDate($time, true);
+                $this->tanggalKirim = Utils::setDate($time, true);
             }
 
             if ($v->description == 'Parsel telah berhasil dikirimkan') {
-                self::$tanggal_terima = GlobalFunction::setDate($time, true);
+                $this->tanggalTerima = Utils::setDate($time, true);
             }
 
-            $history[$k]['tanggal'] = GlobalFunction::setDate($time, true);
+            $history[$k]['tanggal'] = Utils::setDate($time, true);
             $history[$k]['posisi']  = $posisi;
             $history[$k]['message'] = $v->description;
         }

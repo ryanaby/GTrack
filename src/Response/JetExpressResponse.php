@@ -1,121 +1,104 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class JetExpressResponse
+class JetExpressResponse extends Response
 {
-    public static $messageStatus;
-    public static $status_delivery;
-    public static $tanggal_kirim;
-    public static $tanggal_terima;
-    public static $asal_pengiriman;
-    public static $nama_penerima;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'JET EXPRESS',
+        'site' => 'jetexpress.co.id'
+    ];
+
+    /** @var string */
+    private $statusDelivery;
+
+    /** @var string */
+    private $tanggalTerima;
+
+    /** @var string */
+    private $namaPenerima;
 
     /**
      * Format result yang diproses
      *
-     * @param object $response response dari request
+     * @param object $data info from the first request
      *
      * @return object
      */
-    public static function result($response)
+    public function result($data)
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'JET EXPRESS';
-        $data['site']           = 'http://www.jetexpress.co.id';
+        $history = $this->getHistory();
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $responseData           = $response->data;
-        $history                = self::getHistory($response);
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => $responseData->id,
-            'no_awb'            => $responseData->awbNumber,
-            'service'           => $responseData->productName,
-            'status'            => self::$status_delivery,
-            'tanggal_kirim'     => self::$tanggal_kirim,
-            'tanggal_terima'    => self::$tanggal_terima,
-            'asal_pengiriman'   => self::$asal_pengiriman,
-            'tujuan_pengiriman' => $responseData->displayDestinationCity,
-            'harga'             => $responseData->totalFee,
-            'berat'             => $responseData->totalWeight * 1000, // gram
-            'catatan'           => null,
-        ];
-        $data['pengirim']       = [
-            'nama'              => trim(strtoupper($responseData->shipperName)),
-            'phone'             => null,
-            'kota'              => self::$asal_pengiriman,
-            'alamat1'           => self::$asal_pengiriman,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => strtoupper($responseData->consigneeName),
-            'nama_penerima'     => self::$nama_penerima,
-            'phone'             => null,
-            'kota'              => $responseData->displayDestinationCity,
-            'alamat1'           => $responseData->displayDestinationCity,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = $history;
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $data->awbNumber,
+                'service'           => $data->productName,
+                'status'            => $this->statusDelivery,
+                'tanggal_kirim'     => Utils::setDate($data->transactionDate),
+                'tanggal_terima'    => $this->tanggalTerima,
+                'asal_pengiriman'   => $data->displayOriginCity,
+                'tujuan_pengiriman' => $data->displayDestinationCity,
+                'harga'             => $data->totalFee,
+                'berat'             => $data->totalWeight * 1000, // gram
+                'catatan'           => reset($data->connotes)->itemDescription,
+            ],
+            'pengirim'              => [
+                'nama'              => $data->shipperName,
+                'phone'             => null,
+                'kota'              => $data->displayOriginCity,
+                'alamat'            => $data->displayOriginCity,
+            ],
+            'penerima'              => [
+                'nama'              => $data->consigneeName,
+                'nama_penerima'     => $this->namaPenerima,
+                'phone'             => null,
+                'kota'              => $data->displayDestinationCity,
+                'alamat'            => $data->displayDestinationCity,
+            ],
+            'history'               => $history,
+        ]);
     }
 
     /**
-     * Get status dan message
+     * Check status, true if AWB is not found.
      *
-     * @param object $response response dari request
+     * @param mixed $data
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check($data)
     {
-        if (empty($response->data)) {
-            self::$messageStatus = 'No AWB tidak ditemukan.';
-
+        if (empty($data)) {
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
         }
+
+        return false;
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param object $response response dari request
-     *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory()
     {
         $gabung = [];
 
         // Gabung
-        foreach ($response->history as $k => $v) {
-            foreach ($v->tracks as $key => $value) {
+        foreach ($this->getResponse() as $k => $v) {
+            foreach ($v->tracks as $value) {
                 $gabung[] = $value;
             }
         }
@@ -124,23 +107,20 @@ class JetExpressResponse
         $history = [];
 
         foreach ($gabung as $k => $v) {
-            self::$status_delivery = $v->status;
+            $this->statusDelivery = $v->status;
 
-            if ($v->status == 'CREATED') {
-                self::$tanggal_kirim   = GlobalFunction::setDate($v->trackDate);
-                self::$asal_pengiriman = strtoupper($v->location);
+            if ($v->status === 'DELIVERED') {
+                $this->tanggalTerima = Utils::setDate($v->trackDate);
+                $this->namaPenerima  = strtoupper($v->receiverName);
             }
 
-            if ($v->status == 'DELIVERED') {
-                self::$tanggal_terima  = GlobalFunction::setDate($v->trackDate);
-                self::$nama_penerima   = strtoupper($v->receiverName);
-            }
-
-            $history[$k]['tanggal']    = GlobalFunction::setDate($v->trackDate);
-            $history[$k]['posisi']     = strtoupper($v->location);
-            $history[$k]['message']    = ($v->operationStatusFail) ?
-                                        trim($v->displayedStatus) . ' - ' . $v->operationStatusName :
-                                        $v->displayedStatus;
+            $history[$k] = [
+                'tanggal' => Utils::setDate($v->trackDate),
+                'posisi'  => strtoupper($v->location),
+                'message' => $v->operationStatusFail ?
+                             trim($v->displayedStatus) . ' - ' . $v->operationStatusName :
+                             $v->displayedStatus
+            ];
         }
 
         return $history;

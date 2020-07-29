@@ -1,122 +1,124 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class JneResponse
+class JneResponse extends Response
 {
-    public static $lastPossition;
-    public static $messageStatus;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'JNE',
+        'site' => 'jne.co.id'
+    ];
 
     /**
      * Format result yang diproses
      *
-     * @param object $response response dari request
-     *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $isError                = self::isError($response);
-        $data['eks']            = 'JNE';
-        $data['site']           = 'https://www.jne.co.id';
+        $cnote  = $this->getResponse()->cnote;
+        $detail = $this->getResponse()->detail[0];
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $cnote                  = $response->cnote;
-        $detail                 = $response->detail[0];
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => null,
-            'no_awb'            => $cnote->cnote_no,
-            'service'           => $cnote->cnote_services_code,
-            'status'            => strtoupper($cnote->pod_status),
-            'tanggal_kirim'     => GlobalFunction::setDate($cnote->cnote_date),
-            'tanggal_terima'    => GlobalFunction::setDate($cnote->cnote_pod_date),
-            'asal_pengiriman'   => $detail->cnote_origin,
-            'tujuan_pengiriman' => $cnote->city_name,
-            'harga'             => (int) $cnote->amount,
-            'berat'             => (int) $cnote->weight * 1000, // gram
-            'catatan'           => $cnote->goods_desc,
-        ];
-        $data['pengirim']       = [
-            'nama'              => rtrim(strtoupper($detail->cnote_shipper_name)),
-            'phone'             => null,
-            'kota'              => rtrim($detail->cnote_shipper_city),
-            'alamat1'           => Globalfunction::setIfNull($detail->cnote_shipper_addr1),
-            'alamat2'           => Globalfunction::setIfNull($detail->cnote_shipper_addr2),
-            'alamat3'           => Globalfunction::setIfNull($detail->cnote_shipper_addr3),
-        ];
-        $data['penerima']       = [
-            'nama'              => rtrim(strtoupper($cnote->cnote_receiver_name)),
-            'nama_penerima'     => Globalfunction::setIfNull($cnote->cnote_pod_receiver),
-            'phone'             => null,
-            'kota'              => rtrim($detail->cnote_receiver_city),
-            'alamat1'           => Globalfunction::setIfNull($detail->cnote_receiver_addr1),
-            'alamat2'           => Globalfunction::setIfNull($detail->cnote_receiver_addr2),
-            'alamat3'           => Globalfunction::setIfNull($detail->cnote_receiver_addr3),
-        ];
-        $data['history']        = self::getHistory($response);
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $cnote->cnote_no,
+                'service'           => $cnote->cnote_services_code,
+                'status'            => strtoupper($cnote->pod_status),
+                'tanggal_kirim'     => Utils::setDate($cnote->cnote_date),
+                'tanggal_terima'    => Utils::setDate($cnote->cnote_pod_date),
+                'asal_pengiriman'   => $detail->cnote_origin,
+                'tujuan_pengiriman' => $cnote->city_name,
+                'harga'             => (int) $cnote->amount,
+                'berat'             => (int) $cnote->weight * 1000, // gram
+                'catatan'           => $cnote->cnote_goods_descr,
+            ],
+            'pengirim'              => [
+                'nama'              => rtrim(strtoupper($detail->cnote_shipper_name)),
+                'phone'             => null,
+                'kota'              => rtrim($detail->cnote_shipper_city),
+                'alamat'            => $this->setAlamat(
+                    $detail->cnote_shipper_addr1,
+                    $detail->cnote_shipper_addr2,
+                    $detail->cnote_shipper_addr3,
+                    rtrim($detail->cnote_shipper_city),
+                ),
+            ],
+            'penerima'              => [
+                'nama'              => rtrim(strtoupper($cnote->cnote_receiver_name)),
+                'nama_penerima'     => Utils::setIfNull($cnote->cnote_pod_receiver),
+                'phone'             => null,
+                'kota'              => rtrim($detail->cnote_receiver_city),
+                'alamat'            => $this->setAlamat(
+                    $detail->cnote_receiver_addr1,
+                    $detail->cnote_receiver_addr2,
+                    $detail->cnote_receiver_addr3,
+                    rtrim($detail->cnote_receiver_city),
+                ),
+            ],
+            'history'               => $this->getHistory()
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
-        if (isset($response->status) && !$response->status) {
-            self::$messageStatus = $response->error;
-
+        if (isset($this->getResponse()->status) && !$this->getResponse()->status) {
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
         }
+
+        return false;
+    }
+
+    /**
+     * Set alamat
+     *
+     * @param string|null $add1
+     * @param string|null $addr2
+     * @param string|null $addr3
+     * @param string|null $city
+     *
+     * @return string
+     */
+    private function setAlamat($add1, $addr2, $addr3, $city)
+    {
+        $alamat = rtrim("$add1 $addr2 $addr3");
+        if ($alamat == '') {
+            $alamat = $city;
+        }
+
+        return $alamat;
     }
 
     /**
      * Compile history dengan format yang sudah disesuaikan
      *
-     * @param object $response response dari request
-     *
      * @return array
      */
-    private static function getHistory($response)
+    private function getHistory()
     {
         $history = [];
 
-        foreach ($response->history as $k => $v) {
-            $history[$k]['tanggal'] = GlobalFunction::setDate($v->date);
+        foreach ($this->getResponse()->history as $k => $v) {
+            $history[$k]['tanggal'] = Utils::setDate($v->date);
 
-            $pecah  = preg_split('/[\[\]]/', $v->desc);
-
-            if (isset($pecah[1]) && !empty($pecah[1])) {
-                self::setLastPossition(str_replace(' , ', ', ', $pecah[1]));
-            }
+            $pecah         = preg_split('/[\[\]]/', $v->desc);
+            $lastPossition = '';
 
             if (strpos($pecah[0], 'DELIVERED') !== false) {
                 $explode                = explode(' | ', $pecah[1]);
@@ -126,29 +128,15 @@ class JneResponse
                 $history[$k]['posisi']  = str_replace(' , ', ', ', $pecah[1]);
                 $history[$k]['message'] = rtrim(str_replace(' AT', '', $pecah[0]));
             } else {
-                $history[$k]['posisi']  = self::getLastPossition();
+                if (isset($pecah[1]) && !empty($pecah[1])) {
+                    $lastPossition = str_replace(' , ', ', ', $pecah[1]);
+                }
+
+                $history[$k]['posisi']  = $lastPossition;
                 $history[$k]['message'] = $pecah[0];
             }
         }
 
         return $history;
-    }
-
-    /**
-     * Set posisi terakhir
-     *
-     * @param string $possition Posisi terakhir
-     */
-    private static function setLastPossition($possition)
-    {
-        self::$lastPossition = $possition;
-    }
-
-    /**
-     * Get posisi terakhir
-     */
-    private static function getLastPossition()
-    {
-        return self::$lastPossition;
     }
 }

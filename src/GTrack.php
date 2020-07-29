@@ -1,36 +1,35 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack;
 
+use GTrack\Utils\Utils;
+
 /**
- * GTrack - Resi Tracker API
+ * GTrack - PHP Resi Tracker API
  *
  * CATATAN FENTING:
- * - GTrack ini tidak berafiliasi, diizinkan, dikelola ataupun di sponsori
- *   oleh pihak ekspedisi ataupun anak perusahaannya. GTrack murni dibikin
+ * - GTrack ini tidak berafiliasi, dikelola ataupun di sponsori oleh
+ *   pihak ekspedisi ataupun anak perusahaannya. GTrack murni dibikin
  *   sendiri dan statusnya tidak resmi. Resiko ditanggung pengguna.
  * - GTrack dibuat tidak untuk kejahatan, spamming, ataupun kegiatan yang merugikan orang lain.
- * - Pada intinya GTrack dibuat untuk mempermudah kita untuk melakukan melacak resi ya man teman.
- *
- * @author walangkaji (https://github.com/walangkaji)
+ * - Pada intinya GTrack dibuat untuk mempermudah kita untuk melakukan melacak resi ya man-teman.
  */
 class GTrack
 {
-    public static $proxy;
+    /** @var string */
+    public $proxy;
+
+    /** @var string */
+    public $default_useragent = 'okhttp/3.12.1';
 
     public function __construct($proxy = null)
     {
-        $this->_post      = '';
-        $this->_get       = '';
-        $this->_headers   = [];
-        $this->_basicAuth = '';
-        self::$proxy      = $proxy;
+        $this->proxy = $proxy;
     }
 
     /**
@@ -38,23 +37,16 @@ class GTrack
      *
      * @param string $resi Nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\JneResponse
      */
     public function jne($resi)
     {
-        $request = (new CurlRequest)
-            ->request()
-            ->setHeaders([
-                'Host'       => Constants::JNE_HOST,
-                'User-Agent' => 'Java-Request',
+        return $this->request(sprintf(Constants::JNE, $resi))
+            ->addPost([
+                'username' => 'JNEONE',
+                'api_key'  => Constants::JNE_KEY,
             ])
-            ->post(sprintf(Constants::JNE, $resi), [
-                'username'   => 'JNEONE',
-                'api_key'    => '504fbae0d815bf3e73a7416be328fcf2',
-            ])
-            ->getResponse();
-
-        return Response\JneResponse::result($request);
+            ->mapResponse(new Response\JneResponse());
     }
 
     /**
@@ -62,33 +54,23 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\JntResponse
      */
     public function jnt($resi)
     {
-        $query = [
-            'parameter'     => (Object) [
-                'billCodes' => $resi,
-                'lang'      => 'id',
-            ],
-        ];
-
-        $request = (new CurlRequest)
-            ->request()
-            ->setHeaders([
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Host'             => Constants::JNT_HOST,
-                'User-Agent'       => 'okhttp/3.8.0',
+        return $this->request(Constants::JNT)
+            ->addPost([
+                'method' => 'order.massOrderTrack',
+                'format' => 'json',
+                'v'      => '1.0',
+                'data'   => json_encode([
+                    'parameter'     => (Object) [
+                        'billCodes' => $resi,
+                        'lang'      => 'en',
+                    ]
+                ]),
             ])
-            ->post(Constants::JNT, [
-                'method'           => 'order.massOrderTrack',
-                'data'             => json_encode($query),
-                'format'           => 'json',
-                'v'                => '1.0',
-            ])
-            ->getResponse();
-
-        return Response\JntResponse::result($request);
+            ->mapResponse(new Response\JntResponse());
     }
 
     /**
@@ -96,54 +78,15 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\TikiResponse
      */
     public function tiki($resi)
     {
-        $curl = (new CurlRequest)
-            ->request()
-            ->setHeaders([
-                'User-Agent'    => Constants::DALVIK_UA,
-                'Host'          => Constants::TIKI_HOST,
-                'Authorization' => '0437fb74-91bd-11e9-a74c-06f2c0b7c6f0-91bf-11e9-a74c-06f2c4b0b602',
-            ]);
-
-        $try    = 3;
-        $i      = 0;
-        $result = new \stdClass();
-
-        do {
-            $valid  = true;
-
-            $curl->post(Constants::TIKI_INFO, ['cnno' => $resi]);
-
-            $info   = $curl->response;
-
-            if (isset($info->errcode)) {
-                $valid = false;
-            }
-
-            $i++;
-
-            if ($i > $try) {
-                return $info->msg;
-            }
-        } while ($i <= $try && !$valid);
-
-        $result->info = $info->response[0];
-
-        $curl->post(Constants::TIKI_HISTORY, ['cnno' => $resi]);
-        $history = $curl->response;
-
-        if (!isset($history->errcode)) {
-            if (!is_null($history->response)) {
-                $result->history = $history->response[0]->history;
-            } else {
-                $result->history = $history->response;
-            }
-        }
-
-        return Response\TikiResponse::result($result);
+        return $this->request(Constants::TIKI)
+            ->addAuthorization(Constants::TIKI_AUTH)
+            ->addUserAgent(Constants::DALVIK_UA)
+            ->addPost(['cnno' => $resi])
+            ->mapResponse(new Response\TikiResponse());
     }
 
     /**
@@ -151,28 +94,14 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\PosResponse
      */
     public function pos($resi)
     {
-        $request  = (new CurlRequest)
-            ->request()
-            ->get(sprintf(Constants::POS_GET, $resi))
-            ->getResponse();
-
-        $token   = GlobalFunction::GetBetween($request, 'csrf-token" content="', '">');
-
-        $request = (new CurlRequest)
-            ->request()
-            ->post(Constants::POS, [
-                'resi'   => $resi,
-                '_token' => $token,
-            ])
-            ->getResponse();
-
-        @unlink('cookie.txt');
-
-        return Response\PosResponse::result(json_decode($request));
+        return $this->request(Constants::POS)
+            ->addHeader('content-type', 'application/json')
+            ->addPost(['barcode' => $resi])
+            ->mapResponse(new Response\PosResponse());
     }
 
     /**
@@ -180,23 +109,16 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\WahanaResponse
      */
     public function wahana($resi)
     {
-        $request = (new CurlRequest)
-            ->request()
-            ->setHeaders([
-                'User-Agent'   => 'Apache-HttpClient/UNAVAILABLE (java 1.4)',
-                'Host'         => Constants::WAHANA_HOST,
-            ])
-            ->get(Constants::WAHANA, [
-                'access_token' => '093a64444fa19f591682f7087a5e5a08febd9e43',
+        return $this->request(Constants::WAHANA)
+            ->addParam([
+                'access_token' => Constants::WAHANA_AUTH,
                 'ttk'          => $resi,
             ])
-            ->getResponse();
-
-        return Response\WahanaResponse::result($request);
+            ->mapResponse(new Response\WahanaResponse());
     }
 
     /**
@@ -204,20 +126,13 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\SiCepatResponse
      */
     public function siCepat($resi)
     {
-        $request = (new CurlRequest)
-            ->request()
-            ->setHeaders([
-                'Host'    => Constants::SICEPAT_HOST,
-                'api-key' => '96625fdc2bfe59fa05dcf7c9c71755dd',
-            ])
-            ->get(Constants::SICEPAT, ['waybill' => $resi])
-            ->getResponse()->sicepat;
-
-        return Response\SiCepatResponse::result($request);
+        return $this->request(sprintf(Constants::SICEPAT, $resi))
+            ->addHeader('api-key', Constants::SICEPAT_KEY)
+            ->mapResponse(new Response\SiCepatResponse());
     }
 
     /**
@@ -225,17 +140,12 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\NinjaXpressResponse
      */
     public function ninjaXpress($resi)
     {
-        $request = (new CurlRequest)
-            ->request()
-            ->setHeaders(['User-Agent' => 'okhttp/3.4.1'])
-            ->get(Constants::NINJAXPRESS, ['id' => $resi])
-            ->getResponse();
-
-        return Response\NinjaXpressResponse::result($request);
+        return $this->request(sprintf(Constants::NINJAXPRESS, $resi))
+            ->mapResponse(new Response\NinjaXpressResponse());
     }
 
     /**
@@ -243,31 +153,73 @@ class GTrack
      *
      * @param string $resi nomor resi yang mau di cek
      *
-     * @return object
+     * @return Response\JetExpressResponse
      */
     public function jetExpress($resi)
     {
-        $query = ['User-Agent' => 'okhttp/3.4.1'];
-        $data  = (new CurlRequest)
-            ->request()
-            ->setHeaders($query)
-            ->get(Constants::JETEXPRESS, ['awbNumbers' => $resi])
+        $info = $this->request(sprintf(Constants::JETEXPRESS, $resi))
             ->getResponse();
 
-        $history = [];
+        return $this->request(sprintf(Constants::JET_HISTORY, $resi, $info[0]->connotes[0]->connoteCode))
+            ->mapResponse(new Response\JetExpressResponse(), $info[0]);
+    }
 
-        if (!empty($data)) {
-            $history = (new CurlRequest)
-                ->request()
-                ->setHeaders($query)
-                ->get(sprintf(Constants::JET_HISTORY, $resi, $data[0]->connotes[0]->connoteCode))
-                ->getResponse();
-        }
+    /**
+     * LION PARCEL
+     *
+     * @param string $resi nomor resi yang mau di cek
+     *
+     * @return Response\LionParcelResponse
+     */
+    public function lionParcel($resi)
+    {
+        return $this->request(sprintf(Constants::LION_PARCEL, Utils::formatLionResi($resi)))
+            ->mapResponse(new Response\LionParcelResponse());
+    }
 
-        $result          = new \stdClass();
-        $result->data    = $data[0];
-        $result->history = $history;
+    /**
+     * ANTERAJA
+     *
+     * @param string $resi nomor resi yang mau di cek
+     *
+     * @return Response\AnterAjaResponse
+     */
+    public function anterAja($resi)
+    {
+        return $this->request(Constants::ANTERAJA)
+            ->addHeaders([
+                'mv'           => '1.2',
+                'source'       => 'aca_android',
+                'content-type' => 'application/json',
+            ])
+            ->addPost([['codes' => $resi]])
+            ->mapResponse(new Response\AnterAjaResponse());
+    }
 
-        return Response\JetExpressResponse::result($result);
+    /**
+     * REX KIRIMAN EXPRESS
+     *
+     * @param string $resi nomor resi yang mau di cek
+     *
+     * @return Response\RexResponse
+     */
+    public function rex($resi)
+    {
+        return $this->request(Constants::REX)
+            ->addHeader('content-type', 'application/json')
+            ->addPost(['awb' => $resi])
+            ->mapResponse(new Response\RexResponse());
+    }
+
+    /**
+     * Request
+     *
+     * @param string $url
+     *
+     * @return Request
+     */
+    public function request($url)
+    {
+        return new Request($this, $url);
     }
 }

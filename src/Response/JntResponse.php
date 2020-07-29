@@ -1,134 +1,98 @@
 <?php
 /**
- * Global Tesla - globaltesla.com
+ * This file is part of GTrack.
  *
- * @author     Global Tesla <dev@globaltesla.com>
- * @copyright  2019 Global Tesla
+ * @author walangkaji <walangkaji@outlook.com>
  */
 
 namespace GTrack\Response;
 
-use \GTrack\GlobalFunction;
+use GTrack\Response;
+use GTrack\Utils\Utils;
 
 /**
  * Formatting response
  */
-class JntResponse
+class JntResponse extends Response
 {
-    public static $messageStatus;
+    /** @var array */
+    public $ekspedisi  = [
+        'name' => 'JNT',
+        'site' => 'jet.co.id'
+    ];
+
+    /** @var object */
+    public $_response;
+
+    /** @var string */
+    private $tanggalTerima;
+
+    /** @var string */
+    private $tujuanPengiriman;
+
+    /** @var string */
+    private $namaPenerima;
+
+    /** @var string */
+    private $kotaPenerima;
 
     /**
      * Format result yang diproses
      *
-     * @param object $response response dari request
-     *
      * @return object
      */
-    public static function result($response)
+    public function result()
     {
-        $data                   = [];
-        $response               = json_decode($response);
-        $response               = json_decode($response->data)->bills[0];
-        $details                = array_reverse($response->details);
-        $isError                = self::isError($response);
-        $data['eks']            = 'JNT';
-        $data['site']           = 'http://www.jet.co.id';
+        $details = array_reverse($this->_response->details);
+        $history = $this->getHistory($details);
 
-        if ($isError) {
-            $data['error']      = $isError;
-            $data['message']    = self::$messageStatus;
-
-            return json_decode(json_encode($data));
-        }
-
-        $detail                 = self::getDetail($details);
-        $data['error']          = $isError;
-        $data['message']        = self::$messageStatus;
-        $data['info']           = [
-            'id'                => null,
-            'no_awb'            => $response->billCode,
-            'service'           => null,
-            'status'            => strtoupper($response->status),
-            'tanggal_kirim'     => GlobalFunction::setDate($details[0]->acceptTime),
-            'tanggal_terima'    => $detail['tanggal_terima'],
-            'asal_pengiriman'   => $details[0]->city,
-            'tujuan_pengiriman' => $detail['tujuan_pengiriman'],
-            'harga'             => null,
-            'berat'             => null, // gram
-            'catatan'           => null,
-        ];
-
-        $data['pengirim']       = [
-            'nama'              => $detail['nama_pengirim'],
-            'phone'             => $detail['phone_pengirim'],
-            'kota'              => $details[0]->city,
-            'alamat1'           => $details[0]->city,
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['penerima']       = [
-            'nama'              => $detail['tujuan_pengiriman'],
-            'nama_penerima'     => $detail['nama_penerima'],
-            'phone'             => null,
-            'kota'              => $detail['kota_penerima'],
-            'alamat1'           => $detail['kota_penerima'],
-            'alamat2'           => null,
-            'alamat3'           => null,
-        ];
-        $data['history']        = self::getHistory($details);
-
-        return json_decode(json_encode($data));
+        return $this->build([
+            'info'                  => [
+                'no_awb'            => $this->_response->billCode,
+                'service'           => null,
+                'status'            => strtoupper($this->_response->status),
+                'tanggal_kirim'     => Utils::setDate($details[0]->acceptTime),
+                'tanggal_terima'    => $this->tanggalTerima,
+                'asal_pengiriman'   => $details[0]->city,
+                'tujuan_pengiriman' => $this->tujuanPengiriman,
+                'harga'             => null,
+                'berat'             => null, // gram
+                'catatan'           => null,
+            ],
+            'pengirim'              => [
+                'nama'              => null,
+                'phone'             => null,
+                'kota'              => $details[0]->city,
+                'alamat'            => $details[0]->city,
+            ],
+            'penerima'              => [
+                'nama'              => $this->namaPenerima,
+                'nama_penerima'     => $this->namaPenerima,
+                'phone'             => null,
+                'kota'              => $this->kotaPenerima,
+                'alamat'            => $this->kotaPenerima,
+            ],
+            'history'               => $history
+        ]);
     }
 
     /**
-     * Get status dan message
-     *
-     * @param object $response response dari request
+     * Check status, true if AWB is not found.
      *
      * @return bool
      */
-    private static function isError($response)
+    public function check()
     {
+        $response = json_decode($this->getResponse());
+        $response = json_decode($response->data)->bills[0];
+
+        $this->_response = $response;
+
         if (empty($response->details)) {
-            self::$messageStatus = 'No AWB tidak ditemukan.';
-
             return true;
-        } else {
-            self::$messageStatus = 'success';
-
-            return false;
-        }
-    }
-
-    /**
-     * Get detail pengiriman
-     *
-     * @param array $details array dari history jnt
-     *
-     * @return array
-     */
-    private static function getDetail($details)
-    {
-        $result                      = [];
-        $result['tanggal_terima']    = null;
-        $result['tujuan_pengiriman'] = null;
-        $result['nama_penerima']     = null;
-        $result['kota_penerima']     = null;
-        $result['nama_pengirim']     = null;
-        $result['phone_pengirim']    = null;
-
-        foreach ($details as $key) {
-
-            // Barang terkirim ke tujuan
-            if ($key->scanstatus == 'Terkirim') {
-                $result['tanggal_terima']    = GlobalFunction::setDate($key->acceptTime);
-                $result['tujuan_pengiriman'] = strtoupper($key->city);
-                $result['nama_penerima']     = strtoupper($key->signer);
-                $result['kota_penerima']     = strtoupper($key->city);
-            }
         }
 
-        return $result;
+        return false;
     }
 
     /**
@@ -138,29 +102,49 @@ class JntResponse
      *
      * @return array
      */
-    private static function getHistory($details)
+    private function getHistory($details)
     {
         $history = [];
 
         foreach ($details as $k => $v) {
-            $history[$k]['tanggal'] = GlobalFunction::setDate($v->acceptTime);
-            $history[$k]['posisi']  = $v->city . ' (' . $v->siteName . ')';
+            $history[$k]['tanggal'] = Utils::setDate($v->acceptTime);
+            $history[$k]['posisi']  = empty($v->siteName) ? $v->city : "$v->city ($v->siteName)";
 
             switch ($v->scanstatus) {
-                case 'Telah Berangkat':
-                    $history[$k]['message'] = $v->scanstatus . ' dari ' . $v->state . ' menuju ' . $v->nextsite;
+                case 'Departed':
+                    $history[$k]['message'] = "Telah berangkat dari $v->state $v->city menuju $v->nextsite";
                     break;
-                case 'Telah Diambil':
-                    $history[$k]['message'] = $v->scanstatus . ' oleh ' . strtoupper($v->deliveryName) . ' (' . $v->deliveryPhone . ') dari ' . $v->state;
+                case 'Picked Up':
+                    $history[$k]['message'] = sprintf(
+                        'Telah diambil oleh %s (%s) dari %s %s',
+                        strtoupper($v->deliveryName),
+                        $v->deliveryPhone,
+                        $v->state,
+                        $v->city
+                    );
                     break;
-                case 'Telah Tiba':
-                    $history[$k]['message'] = $v->scanstatus . ' ke ' . $v->state;
+                case 'Arrived':
+                    $history[$k]['message'] = "Telah tiba ke $v->state";
                     break;
-                case 'Sedang Diantar':
-                    $history[$k]['message'] = $v->scanstatus . ' oleh ' . strtoupper($v->deliveryName) . ' (' . $v->deliveryPhone . ') dari ' . $v->state;
+                case 'On Delivery':
+                    $history[$k]['message'] = sprintf(
+                        'Sedang diantar oleh %s (%s) dari %s',
+                        strtoupper($v->deliveryName),
+                        $v->deliveryPhone,
+                        $v->state
+                    );
                     break;
-                case 'Terkirim':
-                    $history[$k]['message'] = $v->scanstatus . ' kepada ' . strtoupper($v->signer);
+                case 'Delivered':
+                    $history[$k]['message'] = sprintf(
+                        'Terkirim kepada %s',
+                        strtoupper($v->signer)
+                    );
+
+                    $this->tanggalTerima    = Utils::setDate($v->acceptTime);
+                    $this->tujuanPengiriman = strtoupper($v->city);
+                    $this->namaPenerima     = strtoupper($v->signer);
+                    $this->kotaPenerima     = strtoupper($v->city);
+
                     break;
             }
         }

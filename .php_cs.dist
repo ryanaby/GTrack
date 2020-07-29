@@ -5,11 +5,11 @@
  */
 
 $header = <<<'EOF'
-Global Tesla - globaltesla.com
+This file is part of GTrack.
 
-@author     Global Tesla <dev@globaltesla.com>
-@copyright  2019 Global Tesla
+@author walangkaji <walangkaji@outlook.com>
 EOF;
+
 $config = PhpCsFixer\Config::create()
     ->setRiskyAllowed(true)
     ->setRules([
