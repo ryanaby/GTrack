@@ -103,11 +103,12 @@ class SiCepatResponse extends Response
         $history = [];
 
         foreach ($response->track_history as $k => $v) {
+            $history[$k]['tanggal'] = Utils::setDate($v->date_time);
+
             if ($v->status == 'DELIVERED') {
                 $history[$k]['posisi']  = 'Diterima';
                 $history[$k]['message'] = $v->receiver_name;
             } else {
-                $history[$k]['tanggal'] = Utils::setDate($v->date_time);
                 $history[$k]['posisi']  = preg_replace('/(.*)\[(.*)\](.*)/', '$2', $v->city);
 
                 if (strpos($v->city, 'SIGESIT') !== false) {
