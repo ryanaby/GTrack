@@ -41,32 +41,28 @@ class TikiResponse extends Response
         $history  = $this->getHistory($response);
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $response->cnno,
-                'service'           => $response->product,
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => Utils::setDate($response->sys_created_on),
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $response->consignor_address,
-                'tujuan_pengiriman' => $response->destination_city_name,
-                'harga'             => (int) $response->shipment_fee,
-                'berat'             => (int) $response->weight * 1000, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $response->cnno,
+                'service'        => $response->product,
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => Utils::setDate($response->sys_created_on),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => (int) $response->shipment_fee,
+                'berat'          => (int) $response->weight * 1000, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => rtrim(strtoupper($response->consignor_name)),
-                'phone'             => null,
-                'kota'              => rtrim($response->consignor_address),
-                'alamat'            => Utils::setIfNull($response->consignor_address),
+            'pengirim'           => [
+                'nama'           => rtrim(strtoupper($response->consignor_name)),
+                'phone'          => null,
+                'alamat'         => Utils::setIfNull($response->consignor_address),
             ],
-            'penerima'              => [
-                'nama'              => rtrim(strtoupper($response->consignee_name)),
-                'nama_penerima'     => $this->namaPenerima,
-                'phone'             => null,
-                'kota'              => $response->destination_city_name,
-                'alamat'            => Utils::setIfNull($response->consignee_address),
+            'penerima'           => [
+                'nama'           => rtrim(strtoupper($response->consignee_name)),
+                'nama_penerima'  => $this->namaPenerima,
+                'phone'          => null,
+                'alamat'         => $response->destination_city_name . ', ' . Utils::setIfNull($response->consignee_address),
             ],
-            'history'               => $history
+            'history'            => $history
         ]);
     }
 

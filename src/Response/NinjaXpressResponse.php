@@ -44,32 +44,28 @@ class NinjaXpressResponse extends Response
         $this->_getDeliveryStatus($response);
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $response->tracking_id,
-                'service'           => $response->service_type,
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => $this->tanggalKirim,
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => null,
-                'tujuan_pengiriman' => $response->to_city,
-                'harga'             => null,
-                'berat'             => null, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $response->tracking_id,
+                'service'        => $response->service_type,
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => $this->tanggalKirim,
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => null,
+                'berat'          => null, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => trim(strtoupper($response->from_name)),
-                'phone'             => null,
-                'kota'              => null,
-                'alamat'            => null,
+            'pengirim'           => [
+                'nama'           => trim(strtoupper($response->from_name)),
+                'phone'          => null,
+                'alamat'         => null,
             ],
-            'penerima'              => [
-                'nama'              => $this->getPenerima($response),
-                'nama_penerima'     => $this->getPenerima($response),
-                'phone'             => null,
-                'kota'              => $response->to_city,
-                'alamat'            => $response->to_city,
+            'penerima'           => [
+                'nama'           => $this->getPenerima($response),
+                'nama_penerima'  => $this->getPenerima($response),
+                'phone'          => null,
+                'alamat'         => $response->to_city,
             ],
-            'history'               => $history
+            'history'            => $history
         ]);
     }
 

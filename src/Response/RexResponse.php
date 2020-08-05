@@ -40,32 +40,28 @@ class RexResponse extends Response
         $history = $this->getHistory();
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $this->_response->awb,
-                'service'           => $this->_response->detail->services_code,
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => Utils::setDate($this->_response->detail->shipped_date),
-                'tanggal_terima'    => Utils::setDate($this->_response->detail->delivered_date),
-                'asal_pengiriman'   => $this->_response->detail->sender->city,
-                'tujuan_pengiriman' => $this->_response->detail->receiver->city,
-                'harga'             => $this->_response->detail->actual_amount,
-                'berat'             => $this->_response->detail->weight, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $this->_response->awb,
+                'service'        => $this->_response->detail->services_code,
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => Utils::setDate($this->_response->detail->shipped_date),
+                'tanggal_terima' => Utils::setDate($this->_response->detail->delivered_date),
+                'harga'          => $this->_response->detail->actual_amount,
+                'berat'          => $this->_response->detail->weight, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => null,
-                'phone'             => null,
-                'kota'              => $this->_response->detail->sender->city,
-                'alamat'            => $this->_response->detail->sender->city,
+            'pengirim'           => [
+                'nama'           => null,
+                'phone'          => null,
+                'alamat'         => $this->_response->detail->sender->city,
             ],
-            'penerima'              => [
-                'nama'              => null,
-                'nama_penerima'     => $this->namaPenerima,
-                'phone'             => null,
-                'kota'              => $this->_response->detail->receiver->city,
-                'alamat'            => $this->_response->detail->receiver->city,
+            'penerima'           => [
+                'nama'           => null,
+                'nama_penerima'  => $this->namaPenerima,
+                'phone'          => null,
+                'alamat'         => $this->_response->detail->receiver->city,
             ],
-            'history'               => $history,
+            'history'            => $history,
         ]);
     }
 

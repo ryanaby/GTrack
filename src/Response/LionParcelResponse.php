@@ -43,32 +43,28 @@ class LionParcelResponse extends Response
         $history = $this->getHistory();
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $this->response->package_id,
-                'service'           => sprintf('%s (%s)', $this->response->product_type, $this->response->service_type),
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => Utils::setDate($this->response->created_at),
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $this->response->origin,
-                'tujuan_pengiriman' => $this->response->destination,
-                'harga'             => $this->totalHarga(),
-                'berat'             => $this->response->gross_weight * 1000, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $this->response->package_id,
+                'service'        => sprintf('%s (%s)', $this->response->product_type, $this->response->service_type),
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => Utils::setDate($this->response->created_at),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => $this->totalHarga(),
+                'berat'          => $this->response->gross_weight * 1000, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => $this->response->sender->name,
-                'phone'             => $this->response->sender->phone,
-                'kota'              => $this->response->origin,
-                'alamat'            => $this->response->sender->address,
+            'pengirim'           => [
+                'nama'           => strtoupper($this->response->sender->name),
+                'phone'          => $this->response->sender->phone,
+                'alamat'         => $this->response->origin . ', ' . $this->response->sender->address,
             ],
-            'penerima'              => [
-                'nama'              => $this->response->recipient->name,
-                'nama_penerima'     => $this->namaPenerima,
-                'phone'             => $this->response->recipient->phone,
-                'kota'              => $this->response->destination,
-                'alamat'            => $this->response->recipient->address,
+            'penerima'           => [
+                'nama'           => strtoupper($this->response->recipient->name),
+                'nama_penerima'  => $this->namaPenerima,
+                'phone'          => $this->response->recipient->phone,
+                'alamat'         => $this->response->destination . ', ' . $this->response->recipient->address,
             ],
-            'history'               => $history
+            'history'            => $history
         ]);
     }
 

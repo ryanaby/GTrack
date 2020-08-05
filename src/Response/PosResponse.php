@@ -44,32 +44,28 @@ class PosResponse extends Response
         $history  = $this->getHistory();
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => strval($response->barcode),
-                'service'           => preg_replace('/(.*)LAYANAN :(.*)/', '$2', $data[0]),
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => Utils::setDate($response->eventDate),
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $data[4],
-                'tujuan_pengiriman' => $data[10],
-                'harga'             => null,
-                'berat'             => null, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => strval($response->barcode),
+                'service'        => preg_replace('/(.*)LAYANAN :(.*)/', '$2', $data[0]),
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => Utils::setDate($response->eventDate),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => null,
+                'berat'          => null, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => preg_replace('/(.*)PENGIRIM : (.*)/', '$2', $data[1]),
-                'phone'             => $data[3],
-                'kota'              => $data[4],
-                'alamat'            => $data[2] . ', ' . $data[5],
+            'pengirim'           => [
+                'nama'           => preg_replace('/(.*)PENGIRIM : (.*)/', '$2', $data[1]),
+                'phone'          => $data[3],
+                'alamat'         => $data[2] . ', ' . $data[4],
             ],
-            'penerima'              => [
-                'nama'              => preg_replace('/(.*)PENERIMA : (.*)/', '$2', $data[7]),
-                'nama_penerima'     => $this->namaPenerima,
-                'phone'             => $data[9],
-                'kota'              => $data[10],
-                'alamat'            => $data[8] . ', ' . $data[11],
+            'penerima'           => [
+                'nama'           => preg_replace('/(.*)PENERIMA : (.*)/', '$2', $data[7]),
+                'nama_penerima'  => $this->namaPenerima,
+                'phone'          => $data[9],
+                'alamat'         => $data[8] . ', ' .$data[10],
             ],
-            'history'               => $history,
+            'history'            => $history,
         ]);
     }
 

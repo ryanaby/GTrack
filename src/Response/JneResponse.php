@@ -32,42 +32,28 @@ class JneResponse extends Response
         $detail = $this->getResponse()->detail[0];
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $cnote->cnote_no,
-                'service'           => $cnote->cnote_services_code,
-                'status'            => strtoupper($cnote->pod_status),
-                'tanggal_kirim'     => Utils::setDate($cnote->cnote_date),
-                'tanggal_terima'    => Utils::setDate($cnote->cnote_pod_date),
-                'asal_pengiriman'   => $detail->cnote_origin,
-                'tujuan_pengiriman' => $cnote->city_name,
-                'harga'             => (int) $cnote->amount,
-                'berat'             => (int) $cnote->weight * 1000, // gram
-                'catatan'           => $this->getCatatan($cnote),
+            'info'               => [
+                'no_awb'         => $cnote->cnote_no,
+                'service'        => $cnote->cnote_services_code,
+                'status'         => strtoupper($cnote->pod_status),
+                'tanggal_kirim'  => Utils::setDate($cnote->cnote_date),
+                'tanggal_terima' => Utils::setDate($cnote->cnote_pod_date),
+                'harga'          => (int) $cnote->amount,
+                'berat'          => (int) $cnote->weight * 1000, // gram
+                'catatan'        => $this->getCatatan($cnote),
             ],
-            'pengirim'              => [
-                'nama'              => rtrim(strtoupper($detail->cnote_shipper_name)),
-                'phone'             => null,
-                'kota'              => rtrim($detail->cnote_shipper_city),
-                'alamat'            => $this->setAlamat(
-                    $detail->cnote_shipper_addr1,
-                    $detail->cnote_shipper_addr2,
-                    $detail->cnote_shipper_addr3,
-                    rtrim($detail->cnote_shipper_city),
-                ),
+            'pengirim'           => [
+                'nama'           => rtrim(strtoupper($detail->cnote_shipper_name)),
+                'phone'          => null,
+                'alamat'         => $this->setAlamat($detail, 'pengirim'),
             ],
-            'penerima'              => [
-                'nama'              => rtrim(strtoupper($cnote->cnote_receiver_name)),
-                'nama_penerima'     => Utils::setIfNull($cnote->cnote_pod_receiver),
-                'phone'             => null,
-                'kota'              => rtrim($detail->cnote_receiver_city),
-                'alamat'            => $this->setAlamat(
-                    $detail->cnote_receiver_addr1,
-                    $detail->cnote_receiver_addr2,
-                    $detail->cnote_receiver_addr3,
-                    rtrim($detail->cnote_receiver_city),
-                ),
+            'penerima'           => [
+                'nama'           => rtrim(strtoupper($cnote->cnote_receiver_name)),
+                'nama_penerima'  => Utils::setIfNull($cnote->cnote_pod_receiver),
+                'phone'          => null,
+                'alamat'         => $this->setAlamat($detail, 'penerima'),
             ],
-            'history'               => $this->getHistory()
+            'history'            => $this->getHistory()
         ]);
     }
 
@@ -106,21 +92,34 @@ class JneResponse extends Response
     /**
      * Set alamat
      *
-     * @param string|null $add1
-     * @param string|null $addr2
-     * @param string|null $addr3
-     * @param string|null $city
+     * @param object $detail
+     * @param mixed  $type
      *
      * @return string
      */
-    private function setAlamat($add1, $addr2, $addr3, $city)
+    private function setAlamat($detail, $type)
     {
-        $alamat = rtrim("$add1 $addr2 $addr3");
-        if ($alamat == '') {
-            $alamat = $city;
+        if ($type == 'pengirim') {
+            $alamat = [
+                $detail->cnote_shipper_city,
+                $detail->cnote_shipper_addr1,
+                $detail->cnote_shipper_addr2,
+                $detail->cnote_shipper_addr3,
+            ];
+
+            return rtrim(implode(', ', array_filter($alamat)));
+        } elseif ($type == 'penerima') {
+            $alamat = [
+                $detail->cnote_receiver_city,
+                $detail->cnote_receiver_addr1,
+                $detail->cnote_receiver_addr2,
+                $detail->cnote_receiver_addr3,
+            ];
+
+            return rtrim(implode(', ', array_filter($alamat)));
         }
 
-        return $alamat;
+        return null;
     }
 
     /**
@@ -135,10 +134,10 @@ class JneResponse extends Response
         if (!empty($this->getResponse()->history)) {
             foreach ($this->getResponse()->history as $k => $v) {
                 $history[$k]['tanggal'] = Utils::setDate($v->date);
-    
+
                 $pecah         = preg_split('/[\[\]]/', $v->desc);
                 $lastPossition = '';
-    
+
                 if (Utils::exist('DELIVERED', $pecah[0])) {
                     $explode                = explode(' | ', $pecah[1]);
                     $history[$k]['posisi']  = rtrim(end($explode));
@@ -150,7 +149,7 @@ class JneResponse extends Response
                     if (isset($pecah[1]) && !empty($pecah[1])) {
                         $lastPossition = str_replace(' , ', ', ', $pecah[1]);
                     }
-    
+
                     $history[$k]['posisi']  = $lastPossition;
                     $history[$k]['message'] = $pecah[0];
                 }

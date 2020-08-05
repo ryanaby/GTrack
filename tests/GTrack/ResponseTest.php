@@ -21,8 +21,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             'status',
             'tanggal_kirim',
             'tanggal_terima',
-            'asal_pengiriman',
-            'tujuan_pengiriman',
             'harga',
             'berat',
             'catatan',
@@ -30,14 +28,12 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         'pengirim' => [
             'nama',
             'phone',
-            'kota',
             'alamat',
         ],
         'penerima' => [
             'nama',
             'nama_penerima',
             'phone',
-            'kota',
             'alamat',
         ],
         'history' => [

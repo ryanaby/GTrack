@@ -38,32 +38,28 @@ class AnterAjaResponse extends Response
         $history  = $this->getHistory($response);
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $response->awb,
-                'service'           => $response->detail->service_code,
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => reset($history)['tanggal'],
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $response->detail->sender->address,
-                'tujuan_pengiriman' => $response->detail->receiver->address,
-                'harga'             => $response->detail->actual_amount,
-                'berat'             => $response->detail->weight, // gram
-                'catatan'           => trim(reset($response->items)->item_desc),
+            'info'               => [
+                'no_awb'         => $response->awb,
+                'service'        => $response->detail->service_code,
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => reset($history)['tanggal'],
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => $response->detail->actual_amount,
+                'berat'          => $response->detail->weight, // gram
+                'catatan'        => trim(reset($response->items)->item_desc),
             ],
-            'pengirim'              => [
-                'nama'              => $response->detail->sender->name,
-                'phone'             => $response->detail->sender->phone,
-                'kota'              => $response->detail->sender->address,
-                'alamat'            => $response->detail->sender->address,
+            'pengirim'           => [
+                'nama'           => $response->detail->sender->name,
+                'phone'          => $response->detail->sender->phone,
+                'alamat'         => $response->detail->sender->address,
             ],
-            'penerima'              => [
-                'nama'              => $response->detail->receiver->name,
-                'nama_penerima'     => $response->detail->actual_receiver,
-                'phone'             => $response->detail->receiver->phone,
-                'kota'              => $response->detail->receiver->address,
-                'alamat'            => $response->detail->receiver->address,
+            'penerima'           => [
+                'nama'           => $response->detail->receiver->name,
+                'nama_penerima'  => $response->detail->actual_receiver,
+                'phone'          => $response->detail->receiver->phone,
+                'alamat'         => $response->detail->receiver->address,
             ],
-            'history'               => $history,
+            'history'            => $history,
         ]);
     }
 

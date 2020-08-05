@@ -34,32 +34,28 @@ class SiCepatResponse extends Response
         $response = $this->getResponse()->sicepat->result;
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $response->waybill_number,
-                'service'           => $response->service,
-                'status'            => $this->getStatusDelivery($response),
-                'tanggal_kirim'     => Utils::setDate($response->send_date),
-                'tanggal_terima'    => Utils::setDate($response->POD_receiver_time),
-                'asal_pengiriman'   => strtoupper($response->sender_address),
-                'tujuan_pengiriman' => strtoupper($response->receiver_address),
-                'harga'             => $response->realprice,
-                'berat'             => $response->weight * 1000, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $response->waybill_number,
+                'service'        => $response->service,
+                'status'         => $this->getStatusDelivery($response),
+                'tanggal_kirim'  => Utils::setDate($response->send_date),
+                'tanggal_terima' => Utils::setDate($response->POD_receiver_time),
+                'harga'          => $response->realprice,
+                'berat'          => $response->weight * 1000, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => trim(strtoupper($response->sender)),
-                'phone'             => null,
-                'kota'              => strtoupper($response->sender_address),
-                'alamat'            => strtoupper($response->sender_address),
+            'pengirim'           => [
+                'nama'           => trim(strtoupper($response->sender)),
+                'phone'          => null,
+                'alamat'         => strtoupper($response->sender_address),
             ],
-            'penerima'              => [
-                'nama'              => trim(strtoupper($response->receiver_name)),
-                'nama_penerima'     => trim(strtoupper($this->namaPenerima)),
-                'phone'             => null,
-                'kota'              => strtoupper($response->receiver_address),
-                'alamat'            => strtoupper($response->receiver_address),
+            'penerima'           => [
+                'nama'           => trim(strtoupper($response->receiver_name)),
+                'nama_penerima'  => trim(strtoupper($this->namaPenerima)),
+                'phone'          => null,
+                'alamat'         => strtoupper($response->receiver_address),
             ],
-            'history'               => $this->getHistory($response)
+            'history'            => $this->getHistory($response)
         ]);
     }
 

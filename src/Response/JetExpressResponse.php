@@ -42,32 +42,28 @@ class JetExpressResponse extends Response
         $history = $this->getHistory();
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $data->awbNumber,
-                'service'           => $data->productName,
-                'status'            => $this->statusDelivery,
-                'tanggal_kirim'     => Utils::setDate($data->transactionDate),
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $data->displayOriginCity,
-                'tujuan_pengiriman' => $data->displayDestinationCity,
-                'harga'             => $data->totalFee,
-                'berat'             => $data->totalWeight * 1000, // gram
-                'catatan'           => reset($data->connotes)->itemDescription,
+            'info'               => [
+                'no_awb'         => $data->awbNumber,
+                'service'        => $data->productName,
+                'status'         => $this->statusDelivery,
+                'tanggal_kirim'  => Utils::setDate($data->transactionDate),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => $data->totalFee,
+                'berat'          => $data->totalWeight * 1000, // gram
+                'catatan'        => reset($data->connotes)->itemDescription,
             ],
-            'pengirim'              => [
-                'nama'              => $data->shipperName,
-                'phone'             => null,
-                'kota'              => $data->displayOriginCity,
-                'alamat'            => $data->displayOriginCity,
+            'pengirim'           => [
+                'nama'           => $data->shipperName,
+                'phone'          => null,
+                'alamat'         => $data->displayOriginCity,
             ],
-            'penerima'              => [
-                'nama'              => $data->consigneeName,
-                'nama_penerima'     => $this->namaPenerima,
-                'phone'             => null,
-                'kota'              => $data->displayDestinationCity,
-                'alamat'            => $data->displayDestinationCity,
+            'penerima'           => [
+                'nama'           => $data->consigneeName,
+                'nama_penerima'  => $this->namaPenerima,
+                'phone'          => null,
+                'alamat'         => $data->displayDestinationCity,
             ],
-            'history'               => $history,
+            'history'            => $history,
         ]);
     }
 

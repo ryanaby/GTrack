@@ -4,6 +4,10 @@
 
 * Improvement: Set semua pengiriman selesai jadi "DELIVERED".
 * Fix some bug.
+* Change `$info->asal_pengiriman` to `$pengirim->alamat`.
+* Change `$info->tujuan_pengiriman` to `$penerima->alamat`.
+* Remove `$pengirim->kota`.
+* Remove `$penerima->kota`.
 
 ## 2.0.0 - 2020-07-30
 

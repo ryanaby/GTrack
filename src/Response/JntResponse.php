@@ -28,13 +28,10 @@ class JntResponse extends Response
     private $tanggalTerima;
 
     /** @var string */
-    private $tujuanPengiriman;
-
-    /** @var string */
     private $namaPenerima;
 
     /** @var string */
-    private $kotaPenerima;
+    private $alamatPenerima;
 
     /**
      * Format result yang diproses
@@ -47,32 +44,28 @@ class JntResponse extends Response
         $history = $this->getHistory($details);
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $this->_response->billCode,
-                'service'           => null,
-                'status'            => strtoupper($this->_response->status),
-                'tanggal_kirim'     => Utils::setDate($details[0]->acceptTime),
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $details[0]->city,
-                'tujuan_pengiriman' => $this->tujuanPengiriman,
-                'harga'             => null,
-                'berat'             => null, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $this->_response->billCode,
+                'service'        => null,
+                'status'         => strtoupper($this->_response->status),
+                'tanggal_kirim'  => Utils::setDate($details[0]->acceptTime),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => null,
+                'berat'          => null, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => null,
-                'phone'             => null,
-                'kota'              => $details[0]->city,
-                'alamat'            => $details[0]->city,
+            'pengirim'           => [
+                'nama'           => null,
+                'phone'          => null,
+                'alamat'         => $details[0]->city,
             ],
-            'penerima'              => [
-                'nama'              => $this->namaPenerima,
-                'nama_penerima'     => $this->namaPenerima,
-                'phone'             => null,
-                'kota'              => $this->kotaPenerima,
-                'alamat'            => $this->kotaPenerima,
+            'penerima'           => [
+                'nama'           => $this->namaPenerima,
+                'nama_penerima'  => $this->namaPenerima,
+                'phone'          => null,
+                'alamat'         => $this->alamatPenerima,
             ],
-            'history'               => $history
+            'history'            => $history
         ]);
     }
 
@@ -140,10 +133,9 @@ class JntResponse extends Response
                         strtoupper($v->signer)
                     );
 
-                    $this->tanggalTerima    = Utils::setDate($v->acceptTime);
-                    $this->tujuanPengiriman = strtoupper($v->city);
-                    $this->namaPenerima     = strtoupper($v->signer);
-                    $this->kotaPenerima     = strtoupper($v->city);
+                    $this->tanggalTerima  = Utils::setDate($v->acceptTime);
+                    $this->namaPenerima   = strtoupper($v->signer);
+                    $this->alamatPenerima = strtoupper($v->city);
 
                     break;
             }

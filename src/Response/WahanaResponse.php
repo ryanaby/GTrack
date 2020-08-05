@@ -28,7 +28,7 @@ class WahanaResponse extends Response
     private $namaPenerima;
 
     /** @var string */
-    private $asalPengiriman;
+    private $kotaPengirim;
 
     /**
      * Format result yang diproses
@@ -40,32 +40,28 @@ class WahanaResponse extends Response
         $history = $this->getHistory();
 
         return $this->build([
-            'info'                  => [
-                'no_awb'            => $this->response->TTKNO,
-                'service'           => null,
-                'status'            => $this->response->StatusTerakhir == 3 ? 'DELIVERED' : 'ON PROCESS',
-                'tanggal_kirim'     => Utils::setDate(reset($this->response->data)->Tanggal),
-                'tanggal_terima'    => $this->tanggalTerima,
-                'asal_pengiriman'   => $this->asalPengiriman,
-                'tujuan_pengiriman' => $this->response->Alamatpenerima,
-                'harga'             => null,
-                'berat'             => null, // gram
-                'catatan'           => null,
+            'info'               => [
+                'no_awb'         => $this->response->TTKNO,
+                'service'        => null,
+                'status'         => $this->response->StatusTerakhir == 3 ? 'DELIVERED' : 'ON PROCESS',
+                'tanggal_kirim'  => Utils::setDate(reset($this->response->data)->Tanggal),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => null,
+                'berat'          => null, // gram
+                'catatan'        => null,
             ],
-            'pengirim'              => [
-                'nama'              => trim(strtoupper(preg_replace('/\s+/', ' ', $this->response->Pengirim))),
-                'phone'             => null,
-                'kota'              => $this->asalPengiriman,
-                'alamat'            => $this->asalPengiriman,
+            'pengirim'           => [
+                'nama'           => trim(strtoupper(preg_replace('/\s+/', ' ', $this->response->Pengirim))),
+                'phone'          => null,
+                'alamat'         => $this->kotaPengirim,
             ],
-            'penerima'              => [
-                'nama'              => trim(strtoupper(preg_replace('/\s+/', ' ', $this->response->Penerima))),
-                'nama_penerima'     => rtrim($this->namaPenerima),
-                'phone'             => $this->response->NOTELP,
-                'kota'              => $this->response->Alamatpenerima,
-                'alamat'            => $this->response->Alamatpenerima,
+            'penerima'           => [
+                'nama'           => trim(strtoupper(preg_replace('/\s+/', ' ', $this->response->Penerima))),
+                'nama_penerima'  => rtrim($this->namaPenerima),
+                'phone'          => $this->response->NOTELP,
+                'alamat'         => strtoupper($this->response->Alamatpenerima),
             ],
-            'history'               => $history
+            'history'            => $history
         ]);
     }
 
@@ -97,12 +93,13 @@ class WahanaResponse extends Response
 
             switch ($v->StatusInternal) {
                 case 'Baru':
-                    $this->asalPengiriman  = preg_replace('/Diterima di Sales Counter AGEN WPL (.*)/', '$1', $v->TrackStatusNama);
                     $history[$k]['posisi'] = preg_replace('/Diterima di Sales Counter (.*)/', '$1', $v->TrackStatusNama);
                     break;
 
                 case 'Manifest Pickup':
-                    $history[$k]['posisi'] = preg_replace('/Di pickup oleh petugas (.*)/', '$1', $v->TrackStatusNama);
+                    $posisi                = preg_replace('/Di pickup oleh petugas (.*)/', '$1', $v->TrackStatusNama);
+                    $history[$k]['posisi'] = $posisi;
+                    $this->kotaPengirim    = strtoupper($posisi);
                     break;
 
                 case 'Serah Terima Pickup':
