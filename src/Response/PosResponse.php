@@ -133,12 +133,13 @@ class PosResponse extends Response
                     break;
 
                 case 'SELESAI ANTAR':
-                    if (strpos($v->description, 'Antar Ulang') !== false) {
+                    if (Utils::exist('Antar Ulang', $v->description)) {
                         $message  = "Gagal antar di $v->officeName. ";
                         $message .= preg_replace('/(.*)KETERANGAN : (.*)/', '$2', $v->description);
                     } else {
-                        $this->namaPenerima  = preg_replace('/(.*)PENERIMA \/ KETERANGAN : (.*)/', '$2', $v->description);
-                        $this->tanggalTerima = Utils::setDate($v->eventDate);
+                        $this->namaPenerima   = preg_replace('/(.*)PENERIMA \/ KETERANGAN : (.*)/', '$2', $v->description);
+                        $this->tanggalTerima  = Utils::setDate($v->eventDate);
+                        $this->statusDelivery = 'DELIVERED';
 
                         $message  = "Selesai antar di $v->officeName. ";
                         $message .= Utils::getBetween($v->description, 'STATUS: ', ';') . "($this->namaPenerima)";

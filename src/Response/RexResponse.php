@@ -102,7 +102,8 @@ class RexResponse extends Response
             } elseif ($message == 'received on destination') {
                 $message = "Diterima di $v->city_name";
             } elseif ($message == 'delivered') {
-                $message = "Diterima oleh : $this->namaPenerima";
+                $this->statusDelivery = 'DELIVERED';
+                $message              = "Diterima oleh : $this->namaPenerima";
             }
 
             $history[$k] = [

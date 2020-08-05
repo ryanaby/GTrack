@@ -22,6 +22,9 @@ class NinjaXpressResponse extends Response
     ];
 
     /** @var string */
+    public $statusDelivery;
+
+    /** @var string */
     private $tanggalKirim;
 
     /** @var string */
@@ -38,12 +41,13 @@ class NinjaXpressResponse extends Response
     {
         $response = reset($this->getResponse()->orders);
         $history  = $this->getHistory($response);
+        $this->_getDeliveryStatus($response);
 
         return $this->build([
             'info'                  => [
                 'no_awb'            => $response->tracking_id,
                 'service'           => $response->service_type,
-                'status'            => ($response->status == 'Completed') ? 'DELIVERED' : strtoupper($response->status),
+                'status'            => $this->statusDelivery,
                 'tanggal_kirim'     => $this->tanggalKirim,
                 'tanggal_terima'    => $this->tanggalTerima,
                 'asal_pengiriman'   => null,
@@ -105,6 +109,20 @@ class NinjaXpressResponse extends Response
     }
 
     /**
+     * get delivery status
+     *
+     * @param object $response
+     */
+    private function _getDeliveryStatus($response)
+    {
+        if ($response->status == 'Completed') {
+            $this->statusDelivery = 'DELIVERED';
+        } else {
+            $this->statusDelivery = strtoupper($response->status);
+        }
+    }
+
+    /**
      * Compile history dengan format yang sudah disesuaikan
      *
      * @param object $response response dari request
@@ -118,9 +136,9 @@ class NinjaXpressResponse extends Response
         foreach ($response->events as $k => $v) {
             $time = substr($v->time, 0, -3);
 
-            if (strpos($v->description, ' - ') !== false) {
+            if (Utils::exist(' - ', $v->description)) {
                 $posisi = strtoupper(preg_replace('/(.*) - (.*)/', '$2', $v->description));
-            } elseif (strpos($v->description, 'Penitipan Parsel')) {
+            } elseif (Utils::exist('Penitipan Parsel', $v->description)) {
                 $posisi = strtoupper(preg_replace('/(.*) Penitipan Parsel (.*)/', '$2', $v->description));
             } else {
                 $posisi = null;
@@ -130,7 +148,7 @@ class NinjaXpressResponse extends Response
                 $this->tanggalKirim = Utils::setDate($time, true);
             }
 
-            if (strpos($v->description, 'Telah berhasil dijemput dari') !== false) {
+            if (Utils::exist('Telah berhasil dijemput dari', $v->description)) {
                 $this->tanggalKirim = Utils::setDate($time, true);
             }
 

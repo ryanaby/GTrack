@@ -1,5 +1,10 @@
 # Change Log
 
+## 2.0.1 - 2020-08-03
+
+* Improvement: Set semua pengiriman selesai jadi "DELIVERED".
+* Fix some bug.
+
 ## 2.0.0 - 2020-07-30
 
 * Improvement: Fix setDate function into 24 hours format [#2](https://github.com/walangkaji/GTrack/pull/2).

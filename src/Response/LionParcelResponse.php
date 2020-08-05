@@ -115,12 +115,12 @@ class LionParcelResponse extends Response
         $histories = array_reverse($this->getResponse()->histories);
         foreach ($histories as $k => $v) {
             $this->statusDelivery = strtoupper($v->status);
-
-            $this->lastPossition = $v->city == '' ? $this->lastPossition : strtoupper($v->city);
+            $this->lastPossition  = $v->city == '' ? $this->lastPossition : strtoupper($v->city);
 
             if ($v->status == 'Terkirim') {
-                $this->tanggalTerima = Utils::setDate($v->created_at);
-                $this->namaPenerima  = strtoupper($v->person_name);
+                $this->statusDelivery = strtoupper('DELIVERED');
+                $this->tanggalTerima  = Utils::setDate($v->created_at);
+                $this->namaPenerima   = strtoupper($v->person_name);
             }
 
             $history[$k] = [

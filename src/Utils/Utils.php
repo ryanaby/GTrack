@@ -22,6 +22,10 @@ class Utils
      */
     public static function setDate($date, $timestamp = false)
     {
+        if (is_null($date)) {
+            return null;
+        }
+
         return date('d-m-Y H:i', $timestamp ? $date : strtotime($date));
     }
 

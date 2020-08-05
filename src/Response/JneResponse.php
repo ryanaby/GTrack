@@ -42,7 +42,7 @@ class JneResponse extends Response
                 'tujuan_pengiriman' => $cnote->city_name,
                 'harga'             => (int) $cnote->amount,
                 'berat'             => (int) $cnote->weight * 1000, // gram
-                'catatan'           => $cnote->cnote_goods_descr,
+                'catatan'           => $this->getCatatan($cnote),
             ],
             'pengirim'              => [
                 'nama'              => rtrim(strtoupper($detail->cnote_shipper_name)),
@@ -86,6 +86,24 @@ class JneResponse extends Response
     }
 
     /**
+     * Get catatan
+     *
+     * @param object $data
+     *
+     * @return string|null
+     */
+    private function getCatatan($data)
+    {
+        if (isset($data->cnote_goods_descr) && !empty($data->cnote_goods_descr)) {
+            return $data->cnote_goods_descr;
+        } elseif (isset($data->goods_desc) && !empty($data->goods_desc)) {
+            return $data->goods_desc;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Set alamat
      *
      * @param string|null $add1
@@ -114,26 +132,28 @@ class JneResponse extends Response
     {
         $history = [];
 
-        foreach ($this->getResponse()->history as $k => $v) {
-            $history[$k]['tanggal'] = Utils::setDate($v->date);
-
-            $pecah         = preg_split('/[\[\]]/', $v->desc);
-            $lastPossition = '';
-
-            if (strpos($pecah[0], 'DELIVERED') !== false) {
-                $explode                = explode(' | ', $pecah[1]);
-                $history[$k]['posisi']  = rtrim(end($explode));
-                $history[$k]['message'] = 'DELIVERED';
-            } elseif (count($pecah) > 1) {
-                $history[$k]['posisi']  = str_replace(' , ', ', ', $pecah[1]);
-                $history[$k]['message'] = rtrim(str_replace(' AT', '', $pecah[0]));
-            } else {
-                if (isset($pecah[1]) && !empty($pecah[1])) {
-                    $lastPossition = str_replace(' , ', ', ', $pecah[1]);
+        if (!empty($this->getResponse()->history)) {
+            foreach ($this->getResponse()->history as $k => $v) {
+                $history[$k]['tanggal'] = Utils::setDate($v->date);
+    
+                $pecah         = preg_split('/[\[\]]/', $v->desc);
+                $lastPossition = '';
+    
+                if (Utils::exist('DELIVERED', $pecah[0])) {
+                    $explode                = explode(' | ', $pecah[1]);
+                    $history[$k]['posisi']  = rtrim(end($explode));
+                    $history[$k]['message'] = 'DELIVERED';
+                } elseif (count($pecah) > 1) {
+                    $history[$k]['posisi']  = str_replace(' , ', ', ', $pecah[1]);
+                    $history[$k]['message'] = rtrim(str_replace(' AT', '', $pecah[0]));
+                } else {
+                    if (isset($pecah[1]) && !empty($pecah[1])) {
+                        $lastPossition = str_replace(' , ', ', ', $pecah[1]);
+                    }
+    
+                    $history[$k]['posisi']  = $lastPossition;
+                    $history[$k]['message'] = $pecah[0];
                 }
-
-                $history[$k]['posisi']  = $lastPossition;
-                $history[$k]['message'] = $pecah[0];
             }
         }
 
