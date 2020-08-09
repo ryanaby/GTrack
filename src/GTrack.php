@@ -42,10 +42,7 @@ class GTrack
     public function jne($resi)
     {
         return $this->request(sprintf(Constants::JNE, $resi))
-            ->addPost([
-                'username' => 'JNEONE',
-                'api_key'  => Constants::JNE_KEY,
-            ])
+            ->addAuthorization(Constants::JAUTH)
             ->mapResponse(new Response\JneResponse());
     }
 

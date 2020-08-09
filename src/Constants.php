@@ -9,8 +9,10 @@ namespace GTrack;
 
 class Constants
 {
-    const JNE         = 'http://apiv2.jne.co.id:10101/tracing/api/list/myjne/cnote/%s';
+    const JNE         = 'https://resi.id/api/track?courier=jne&awb=%s';
+    const JNE_O       = 'http://apiv2.jne.co.id:10101/tracing/api/list/myjne/cnote/%s';
     const JNE_KEY     = '504fbae0d815bf3e73a7416be328fcf2';
+    const JAUTH       = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbmV3cmVzaS5sb2NhbDo3ODg4L2FwaS9hdXRoL2xvZ2luIiwiaWF0IjoxNTQwNzgyOTU4LCJuYmYiOjE1NDA3ODI5NTgsImp0aSI6ImlmT2loWjY1QVptems3dFkiLCJzdWIiOjEsInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.O6O2xse4JOReyQutaAyxjmOGXAxEd3eDDIX1DWT96cI';
     const JNT         = 'http://jk.jet.co.id:22234/jandt-app-ifd-web/router.do';
     const TIKI        = 'https://my.tiki.id/api/connote/information';
     const TIKI_AUTH   = '0437fb74-91bd-11e9-a74c-06f2c0b7c6f0-91bf-11e9-a74c-06f2c4b0b602';

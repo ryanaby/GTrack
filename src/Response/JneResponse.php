@@ -21,6 +21,12 @@ class JneResponse extends Response
         'site' => 'jne.co.id'
     ];
 
+    /** @var string */
+    public $namaPenerima;
+
+    /** @var string */
+    public $tanggalTerima;
+
     /**
      * Format result yang diproses
      *
@@ -28,32 +34,31 @@ class JneResponse extends Response
      */
     public function result()
     {
-        $cnote  = $this->getResponse()->cnote;
-        $detail = $this->getResponse()->detail[0];
+        $history = $this->getHistory();
 
         return $this->build([
             'info'               => [
-                'no_awb'         => $cnote->cnote_no,
-                'service'        => $cnote->cnote_services_code,
-                'status'         => strtoupper($cnote->pod_status),
-                'tanggal_kirim'  => Utils::setDate($cnote->cnote_date),
-                'tanggal_terima' => Utils::setDate($cnote->cnote_pod_date),
-                'harga'          => (int) $cnote->amount,
-                'berat'          => (int) $cnote->weight * 1000, // gram
-                'catatan'        => $this->getCatatan($cnote),
+                'no_awb'         => $this->response->summary->awb,
+                'service'        => $this->response->summary->service,
+                'status'         => $this->response->status,
+                'tanggal_kirim'  => Utils::setDate($this->response->summary->date),
+                'tanggal_terima' => $this->tanggalTerima,
+                'harga'          => (int) $this->response->summary->amount,
+                'berat'          => (int) $this->response->summary->weight * 1000, // gram
+                'catatan'        => $this->response->summary->desc,
             ],
             'pengirim'           => [
-                'nama'           => rtrim(strtoupper($detail->cnote_shipper_name)),
+                'nama'           => strtoupper(rtrim($this->response->detail->shipper)),
                 'phone'          => null,
-                'alamat'         => $this->setAlamat($detail, 'pengirim'),
+                'alamat'         => $this->response->detail->origin,
             ],
             'penerima'           => [
-                'nama'           => rtrim(strtoupper($cnote->cnote_receiver_name)),
-                'nama_penerima'  => Utils::setIfNull($cnote->cnote_pod_receiver),
+                'nama'           => strtoupper($this->response->detail->receiver),
+                'nama_penerima'  => $this->namaPenerima,
                 'phone'          => null,
-                'alamat'         => $this->setAlamat($detail, 'penerima'),
+                'alamat'         => $this->response->detail->destination,
             ],
-            'history'            => $this->getHistory()
+            'history'            => $history
         ]);
     }
 
@@ -64,62 +69,11 @@ class JneResponse extends Response
      */
     public function check()
     {
-        if (isset($this->getResponse()->status) && !$this->getResponse()->status) {
+        if (isset($this->getResponse()->error)) {
             return true;
         }
 
         return false;
-    }
-
-    /**
-     * Get catatan
-     *
-     * @param object $data
-     *
-     * @return string|null
-     */
-    private function getCatatan($data)
-    {
-        if (isset($data->cnote_goods_descr) && !empty($data->cnote_goods_descr)) {
-            return $data->cnote_goods_descr;
-        } elseif (isset($data->goods_desc) && !empty($data->goods_desc)) {
-            return $data->goods_desc;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Set alamat
-     *
-     * @param object $detail
-     * @param mixed  $type
-     *
-     * @return string
-     */
-    private function setAlamat($detail, $type)
-    {
-        if ($type == 'pengirim') {
-            $alamat = [
-                $detail->cnote_shipper_city,
-                $detail->cnote_shipper_addr1,
-                $detail->cnote_shipper_addr2,
-                $detail->cnote_shipper_addr3,
-            ];
-
-            return rtrim(implode(', ', array_filter($alamat)));
-        } elseif ($type == 'penerima') {
-            $alamat = [
-                $detail->cnote_receiver_city,
-                $detail->cnote_receiver_addr1,
-                $detail->cnote_receiver_addr2,
-                $detail->cnote_receiver_addr3,
-            ];
-
-            return rtrim(implode(', ', array_filter($alamat)));
-        }
-
-        return null;
     }
 
     /**
@@ -135,23 +89,17 @@ class JneResponse extends Response
             foreach ($this->getResponse()->history as $k => $v) {
                 $history[$k]['tanggal'] = Utils::setDate($v->date);
 
-                $pecah         = preg_split('/[\[\]]/', $v->desc);
-                $lastPossition = '';
+                $pecah = preg_split('/[\[\]]/', $v->desc);
 
-                if (Utils::exist('DELIVERED', $pecah[0])) {
+                if (Utils::exist('Delivered', $v->desc)) {
                     $explode                = explode(' | ', $pecah[1]);
-                    $history[$k]['posisi']  = rtrim(end($explode));
+                    $this->namaPenerima     = strtoupper(rtrim(reset($explode)));
+                    $this->tanggalTerima    = Utils::setDate($v->date);
+                    $history[$k]['posisi']  = strtoupper(rtrim(end($explode)));
                     $history[$k]['message'] = 'DELIVERED';
-                } elseif (count($pecah) > 1) {
-                    $history[$k]['posisi']  = str_replace(' , ', ', ', $pecah[1]);
-                    $history[$k]['message'] = rtrim(str_replace(' AT', '', $pecah[0]));
                 } else {
-                    if (isset($pecah[1]) && !empty($pecah[1])) {
-                        $lastPossition = str_replace(' , ', ', ', $pecah[1]);
-                    }
-
-                    $history[$k]['posisi']  = $lastPossition;
-                    $history[$k]['message'] = $pecah[0];
+                    $history[$k]['posisi']  = $v->location;
+                    $history[$k]['message'] = rtrim(str_replace(' At', '', $pecah[0]));
                 }
             }
         }
